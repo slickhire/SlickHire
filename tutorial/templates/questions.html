@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block main %}
+ <form  method="post" class="post-form">
+{% csrf_token %}
+{% for obj in qs %} 
+    <div class="form-group">
+	    <label class="control-label"> {{ obj.q }} </label>
+	    <input type="text" class="form-control" name= "{{ obj.tagId }}" >
+    </div>
+{% endfor %}
+  <input type="hidden" name="strId" value="{{ stringId }}">
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form> 
+{% endblock %}

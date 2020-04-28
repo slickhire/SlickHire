@@ -1,0 +1,5 @@
+from django.core.serializers import serialize
+from django.http import JsonResponse
+from . import models
+
+return JsonResponse(serialize('json', models.Person.objects.all(name, mobile, experience, institute, education, employer, skills, score, salary, email, status), cls=LazyEncoder))

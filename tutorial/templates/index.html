@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block main %}
+ <form  method="post" class="post-form" enctype="multipart/form-data">
+{% csrf_token %}
+        {{ form.as_p }}
+    <button  type="submit"  class="btn btn-success">Upload</button>
+</form> 
+<table id="example" class="table table-striped table-bordered table-hover" style="width:100%">
+        <thead  table-text-light bgcolor="#3b5998">
+            <tr>
+                <th><font color="#fff">Name</th>
+                <th><font color="#fff">Mobile</th>
+                <th><font color="#fff">Experience</th>
+                <th><font color="#fff">Institute</th>
+                <th><font color="#fff">Education</th>
+                <th><font color="#fff">Employer</th>
+		<th><font color="#fff">Skills</th>
+		<th><font color="#fff">Score</th>
+		<th><font color="#fff">Salary</th>
+		<th><font color="#fff">Email</th>
+		<th><font color="#fff">Status</th>
+            </tr>
+        </thead>
+
+</table>
+{% endblock %}
