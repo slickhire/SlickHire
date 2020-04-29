@@ -41,7 +41,6 @@ EMAIL_PORT = 587
 
 INSTALLED_APPS = [
 	'tutorial.apps.TutorialConfig',
-	'web_core.apps.WebCoreConfig',
 	'background_task',
     'django.contrib.admin',
     'django.contrib.auth',

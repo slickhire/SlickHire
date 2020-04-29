@@ -77,6 +77,12 @@ def questions(request):
 
         return render(request,"questions.html", {'qs': list(models.Questions.objects.filter(key__exact=data.questions)), 'stringId': id})
 
+def opt_out(request):
+	candidateId = request.get_full_path().rsplit('=', 1)[1]
+	data = models.Person.objects.only('questions').get(stringId__exact=candidateId)
+	data.status = "OptedOut"
+	data.save()
+	return HttpResponse("You have successfuly opted-out")
 
 def homepage(request):
     return HttpResponse("First App")

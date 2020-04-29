@@ -80,6 +80,7 @@ def send_email(candidate_name,
           com_link,
           desc_link,
           input_link,
+          optout_link,
           to_mail
           ):
     send_mail(
@@ -92,7 +93,8 @@ def send_email(candidate_name,
             'location': location,
             'com_link': com_link,
             'desc_link': desc_link,
-            'input_link': input_link
+            'input_link': input_link,
+	    'optout_link': optout_link
         }
     ),
     settings.EMAIL_HOST_USER,
@@ -106,12 +108,13 @@ def AddPerson(rparser):
 					,skills=rparser['skills'],status="pending",score=0,education=rparser['education'],experience=rparser['experience'])
 	#p.save()
 	id = "ec2-3-17-12-192.us-east-2.compute.amazonaws.com/questions?id=" + p.stringId
+	optout_link = 'ec2-3-17-12-192.us-east-2.compute.amazonaws.com/opt_out?id=' + p.stringId
 	print("kempa heer sms")
 	sendSMS("+919742437310","xyz",id)
 	print("kempa heer call")
 	makeVoiceCall("+919742437310","kempa")
 	print("kempa heer save")
-	send_email(rparser['name'],"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id,"anthony_1087@yahoo.com")
+	send_email(rparser['name'],"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, "anthony_1087@yahoo.com")
 	p.save()
 
 def Extarct_Files(newFile):
@@ -152,9 +155,10 @@ def StartQuestionaireReminder():
     candidates = models.Person.objects.all()
     allCandidatesResponded = True
     for candidate in candidates:
-        if candidate.status != 'Received':
+        if candidate.status not in [ 'Received', 'OptedOut' ]:
              allCandidatesResponded = False
              candQuestionsUrl = "ec2-3-17-12-192.us-east-2.compute.amazonaws.com/questions?id={}".format(candidate.stringId)
+             optout_link = 'ec2-3-17-12-192.us-east-2.compute.amazonaws.com/opt_out?id=' + candidate.stringId
              sendSMS("+919008718152", "xyz", candQuestionsUrl)
-             send_email(candidate.name, "Developer","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs", candQuestionsUrl, "anthony_1087@yahoo.com")
+             send_email(candidate.name, "Developer","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs", candQuestionsUrl, optout_link, "anthony_1087@yahoo.com")
              print("Reminder Sent")

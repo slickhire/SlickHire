@@ -22,8 +22,8 @@ urlpatterns = [
     path('index/', views.index),
     path('index/data/', views.data),
     path('questions', views.questions),
-    path('opt-out', views.opt_out),
+    path('opt_out', views.opt_out),
     path('',views.homepage, name="homepage")
 ]
 
-StartQuestionaireReminder(repeat=5, repeat_until=None)
+#StartQuestionaireReminder(repeat=5, repeat_until=None)
