@@ -1,0 +1,10 @@
+{% block title %}
+    <h5 id="mydialog-title">Are you sure you want to opt-out?</h5>
+{% endblock title %}
+
+{% block body %}
+<form  method="post" class="post-form"> {% csrf_token %}
+  <input type="hidden" name="strId" value="{{ stringId }}">
+  <input type="submit" value="Confirm" class='btn btn-warning'>
+</form>
+{% endblock body %}

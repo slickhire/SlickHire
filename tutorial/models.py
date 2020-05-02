@@ -14,6 +14,7 @@ class Person(models.Model):
     status = models.CharField(max_length=30)
     stringId = models.CharField(max_length=30, db_index=True)
     questions = models.CharField(max_length=30)
+    reminderscount = models.IntegerField(default=0)
 
 # Create your models here.
 class Questions(models.Model):

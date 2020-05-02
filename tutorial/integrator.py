@@ -105,7 +105,7 @@ def send_email(candidate_name,
 def AddPerson(rparser):
 	print("latest",rparser['name'],rparser['email'],rparser['mobile_number'])
 	p = models.Person(name=rparser['name'], mobile=rparser['mobile_number'], stringId = get_random_string(length=30), questions = "qa",email=rparser['email']
-					,skills=rparser['skills'],status="pending",score=0,education=rparser['education'],experience=rparser['experience'])
+					,skills=rparser['skills'],status="pending",score=0,education=rparser['education'],experience=rparser['experience'], reminderscount=0)
 	#p.save()
 	id = "ec2-3-17-12-192.us-east-2.compute.amazonaws.com/questions?id=" + p.stringId
 	optout_link = 'ec2-3-17-12-192.us-east-2.compute.amazonaws.com/opt_out?id=' + p.stringId
@@ -148,17 +148,33 @@ def CallHandler():
 	notifier.loop()
 
 import time
+from datetime import datetime
+
+def isReminderAllowedAtThisTime():
+    now = datetime.now() 
+    currentHour = int(now.strftime("%H"))
+    if currentHour >= 8 and currentHour < 20:
+        return True
+    else:
+        return False
 
 @background
 def StartQuestionaireReminder():
     print("Reminder Started at ", time.time())
+
+    if not isReminderAllowedAtThisTime():
+        return
+
     candidates = models.Person.objects.all()
     allCandidatesResponded = True
     for candidate in candidates:
-        if candidate.status not in [ 'Received', 'OptedOut' ]:
+        if candidate.status != 'Received':
              allCandidatesResponded = False
              candQuestionsUrl = "ec2-3-17-12-192.us-east-2.compute.amazonaws.com/questions?id={}".format(candidate.stringId)
              optout_link = 'ec2-3-17-12-192.us-east-2.compute.amazonaws.com/opt_out?id=' + candidate.stringId
              sendSMS("+919008718152", "xyz", candQuestionsUrl)
              send_email(candidate.name, "Developer","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs", candQuestionsUrl, optout_link, "anthony_1087@yahoo.com")
              print("Reminder Sent")
+             candidate.reminderscount += 1
+             if candidate.reminderscount == 3:
+                 candidate.delete()

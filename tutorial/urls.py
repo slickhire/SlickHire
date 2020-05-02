@@ -26,4 +26,4 @@ urlpatterns = [
     path('',views.homepage, name="homepage")
 ]
 
-#StartQuestionaireReminder(repeat=5, repeat_until=None)
+StartQuestionaireReminder(repeat=5, repeat_until=None)

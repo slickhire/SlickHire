@@ -78,11 +78,17 @@ def questions(request):
         return render(request,"questions.html", {'qs': list(models.Questions.objects.filter(key__exact=data.questions)), 'stringId': id})
 
 def opt_out(request):
-	candidateId = request.get_full_path().rsplit('=', 1)[1]
-	data = models.Person.objects.only('questions').get(stringId__exact=candidateId)
-	data.status = "OptedOut"
-	data.save()
-	return HttpResponse("You have successfuly opted-out")
+    if request.method == 'POST': 
+        print('Receieved POST opt-out request for: ', request.POST["strId"])
+        candidate = models.Person.objects.only('questions').filter(stringId__exact=request.POST['strId'])
+        if candidate:
+            candidate.delete()
+            return HttpResponse("You have successfuly opted-out")
+        else:
+            return HttpResponse("Invalid Request")
+    else:
+        print('Receieved GET opt-out request for: ', request.GET["id"])
+        return render(request,"optout.html", {'stringId': request.GET["id"]})
 
 def homepage(request):
     return HttpResponse("First App")
