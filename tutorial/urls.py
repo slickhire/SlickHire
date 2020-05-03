@@ -17,13 +17,17 @@ from django.contrib import admin
 from django.urls import path
 from . import views
 from .integrator import StartQuestionaireReminder
-
 urlpatterns = [
     path('index/', views.index),
     path('index/data/', views.data),
     path('questions', views.questions),
     path('opt_out', views.opt_out),
+    path('jprofile',views.jprofile),
+    path('jprofile/save_job/', views.saveJob),
+    path('jprofile/get_job/', views.getJob),
+    path('jprofile/delete_job/', views.deleteJob),
+    path('calendar', views.calendar),
+    path('calendarCandidate', views.calendarCandidate),
     path('',views.homepage, name="homepage")
 ]
-
 StartQuestionaireReminder(repeat=5, repeat_until=None)
