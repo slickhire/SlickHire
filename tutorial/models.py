@@ -15,7 +15,6 @@ class Person(models.Model):
     stringId = models.CharField(max_length=30, db_index=True)
     questions = models.CharField(max_length=30)
     reminderscount = models.IntegerField(default=0)
-
 # Create your models here.
 class Questions(models.Model):
     key = models.CharField(max_length=30)
@@ -24,3 +23,18 @@ class Questions(models.Model):
     tagId = models.CharField(max_length=30)
     expected1 = models.CharField(max_length=30)
     expected2 = models.CharField(max_length=30)
+
+class JobProfile(models.Model):
+    jobId = models.CharField(max_length=30, primary_key=True)
+    designation = models.CharField(max_length=30)
+    experience = models.CharField(max_length=30)
+    salary = models.CharField(max_length=30)
+    notice = models.CharField(max_length=30)
+    skills = models.CharField(max_length=30)
+    salary1 = models.CharField(max_length=30)
+    salary2 = models.CharField(max_length=30)
+    notice1 = models.CharField(max_length=30)
+    notice2 = models.CharField(max_length=30)
+    exp1 = models.CharField(max_length=30)
+    exp2 = models.CharField(max_length=30)
+    calendar = models.CharField(max_length=5000)
