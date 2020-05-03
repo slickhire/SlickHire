@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% block main %}
+ <form  method="post" class="post-form" enctype="multipart/form-data">
+{% csrf_token %}
+        {{ form.as_p }}
+</form> 
+
+<button type="button" class="btn btn-success" id ="add">
+    <span class="glyphicon glyphicon-plus"></span> Add Job Profile
+  </button>
+
+<table id="example" class="table table-striped table-bordered table-hover" style="width:100%">
+        <thead  table-text-light bgcolor="#3b5998">
+		            <tr>
+                <th><font color="#fff">JobId</th>
+                <th><font color="#fff">Designation</th>
+                <th><font color="#fff">Experience Range</th>
+                <th><font color="#fff">Salary Range</th>
+                <th><font color="#fff">Notice Period</th>
+                <th><font color="#fff">Skills</th>
+		<th><font color="#fff">Action</th>
+            </tr>
+        </thead>
+</table>
+       
+
+
+<!-- Modal -->
+ <div class="modal fade" id="getCodeModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+   <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+       <div class="modal-header">
+         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+         <h4 class="modal-title" id="myModalLabel"> API CODE </h4>
+       </div>
+       <div class="modal-body" id="getCode" style="overflow-x: scroll;">
+       Success
+       </div>
+    </div>
+   </div>
+ </div>
+
+
+<!-- Modal -->
+<div class="modal" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+	 <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+         <div class="form-group form-inline">
+  <label>JobId: &nbsp</label>
+  <input type="text" class="form-control input-sm" id="jobId">
+  <p></p>
+	 </div>
+<p></p>
+<div class="form-group form-inline" id="des">
+  <label>Designation:&nbsp</label>
+  <input type="text" class="form-control input-sm" id="designation">
+</div>
+<p></p>
+<div class="form-group form-inline">
+  <label>Experience Range: &nbsp</label>
+  <input type="text" class="form-control input-sm" id="exp">
+  <p></p>
+         </div>
+<div class="form-group form-inline">
+  <label>Salary Range: &nbsp</label>
+  <input type="text" class="form-control input-sm" id="salary">
+  <p></p>
+         </div>
+<div class="form-group form-inline">
+  <label>Notice Period: &nbsp</label>
+  <input type="text" class="form-control input-sm" id="notice">
+  <p></p>
+         </div>
+<div class="form-group form-inline">
+  <label>Skills: &nbsp</label>
+  <input type="text" class="form-control input-sm" id="skills">
+  <p></p>
+         </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" id = "save" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+
+$('#exampleModal').on('hidden.bs.modal', function () {
+location.reload();
+})
+
+$(document).ready(function() {
+
+$('#add').click(function(){
+	            var x = document.getElementById("exampleModalLabel");
+            x.innerHTML="";
+            $('#jobId').val("");
+            $('#designation').val("");
+            $('#exp').val("");
+            $('#salary').val("");
+            $('#notice').val("");
+            $('#skills').val("");
+
+$('#exampleModal').modal('show');
+});
+$('#save').click(function(){
+	console.log("value", $('#jobId').val());
+    $.post("jprofile/save_job/",
+    {
+       jobid: $('#jobId').val(),
+       designation: $('#designation').val(),
+       exp: $('#exp').val(),
+       salary: $('#salary').val(),
+       notice: $('#notice').val(),
+       skills: $('#skills').val()
+    },
+    function(data,status){
+        $.alert({
+        title: 'Alert!',
+        content: 'Saved!',
+    });
+    });
+  });
+	var table = $('#example').DataTable({
+		        "columnDefs": [ {
+            "targets": -1,
+            "data": null,
+				"defaultContent": "<button id = \"delete\" class=\"btn btn-danger\">Delete</button> <button id=\"edit\" class=\"btn btn-primary\"> &nbsp; Edit&nbsp;</button>"
+        } ],
+	            serverSide: false,
+            ajax:'jprofile/get_job/'});
+table.ajax.reload();
+
+    $('#example tbody').on('click', 'tr', function () {
+        /*var data = table.row( this ).data();
+	    var x = document.getElementById("exampleModalLabel");
+	    x.innerHTML=data[0];
+	    $('#jobId').val(data[0]);
+	    $('#designation').val(data[1]);
+	    $('#exp').val(data[2]);
+	    $('#salary').val(data[3]);
+	    $('#notice').val(data[4]);
+	    $('#skills').val(data[5]);
+        $('#exampleModal').modal('show');*/
+    } );
+
+$('#example tbody').on( 'click', 'button', function () {
+	var data = table.row( $(this).parents('tr') ).data();
+	if (event.target.id=="edit")
+	{
+            var x = document.getElementById("exampleModalLabel");
+            x.innerHTML=data[0];
+            $('#jobId').val(data[0]);
+            $('#designation').val(data[1]);
+            $('#exp').val(data[2]);
+            $('#salary').val(data[3]);
+            $('#notice').val(data[4]);
+            $('#skills').val(data[5]);
+        $('#exampleModal').modal('show');
+
+	}
+	else
+	{
+		    $.post("jprofile/delete_job/",
+    {
+       jobid: data[0]
+    },
+    function(data,status){
+        $.alert({
+        title: 'Alert!',
+        content: 'Deleted!',
+    });
+	    location.reload();
+    });
+
+	}
+    } );
+	//table.on( 'click', function (e) {
+   //     e.preventDefault();
+ 
+        // Get the column API object
+     //   var column = table.column( $(this).attr('data-column') );
+ 
+        // Toggle the visibility
+       // column.visible( ! column.visible() );
+//    } );
+
+//table.ajax.reload();
+
+})
+
+        </script>
+
+{% endblock %}
