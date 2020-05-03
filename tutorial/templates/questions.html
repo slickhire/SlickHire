@@ -4,11 +4,34 @@
  <form  method="post" class="post-form">
 {% csrf_token %}
 {% for obj in qs %} 
-    <div class="form-group">
-	    <label class="control-label"> {{ obj.q }} </label>
-	    <input type="text" class="form-control" name= "{{ obj.tagId }}" >
-    </div>
+ <div class="form-group">
+	    <label> How much do you rate yourself in {{ obj }} 10 being max and 1 being least </label>
+	    <input type="text" class="form-control" name= "{{ obj }}" >
+   </div>
 {% endfor %}
+      <div class="form-group">
+            <label class="control-label"> What is your present company name?  </label>
+            <input type="text" class="form-control" name= "company" >
+      </div>
+    <div class="form-group">
+            <label class="control-label"> What is your expected salary in lakhs? </label>
+            <input type="text" class="form-control" name= "expectedCtc" >
+    </div>
+    <div class="form-group">
+            <label class="control-label"> What is your current salary in lakhs? </label>
+            <input type="text" class="form-control" name= "currentCtc" >
+    </div>
+     <div class="form-group">
+            <label class="control-label"> What is your notice period in months? </label>
+            <input type="text" class="form-control" name= "notice" >
+    </div>
+    <div class="form-group">
+            <label class="control-label"> What is your current experience in years? </label>
+            <input type="text" class="form-control" name= "experience" >
+    </div>
+
+
+
   <input type="hidden" name="strId" value="{{ stringId }}">
   <button type="submit" class="btn btn-primary">Submit</button>
 </form> 
