@@ -16,14 +16,6 @@ def email():
     send_mail( subject, message, email_from, recipient_list )
 
 def handle_uploaded_file(f):
-    models.Questions.objects.all().delete()
-    q = models.Questions(key="qa", q="What is expected ctc", options = "", tagId = "expectedCtc", expected1 = "5", expected2 = "7")
-    q.save()
-    q = models.Questions(key="qa", q="What is your current company name", options = "", tagId = "company")
-    q.save();
-    q = models.Questions(key="qa", q="How much is your experience in years", options = "", tagId = "experience", expected1 = "5", expected2 = "7")
-    q.save()
-
     now = datetime.now()
     dt_string = now.strftime("%d_%m_%Y_%H:%M:%S")
     with open('tutorial/static/upload/'+ dt_string + '_' + f.name, 'wb+') as destination:  
