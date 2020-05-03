@@ -24,4 +24,25 @@
         </thead>
 
 </table>
+<script>
+$(document).ready(function() {
+    var table = $('#example').DataTable({
+            serverSide: false,
+            ajax:'data/'});
+ //table.on( 'click', function (e) {
+   //     e.preventDefault();
+ 
+        // Get the column API object
+     //   var column = table.column( $(this).attr('data-column') );
+ 
+        // Toggle the visibility
+       // column.visible( ! column.visible() );
+//    } );
+
+table.ajax.reload();
+
+})
+
+        </script>
+
 {% endblock %}
