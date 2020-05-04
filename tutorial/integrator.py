@@ -2,6 +2,7 @@
 #
 # See: http://github.com/seb-m/pyinotify/wiki/Tutorial
 #
+'''
 import pyinotify
 from zipfile import ZipFile
 import os 
@@ -178,3 +179,4 @@ def StartQuestionaireReminder():
              candidate.reminderscount += 1
              if candidate.reminderscount == 3:
                  candidate.delete()
+'''
