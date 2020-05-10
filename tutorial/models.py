@@ -46,6 +46,9 @@ class JobProfile(models.Model):
     interviewScheduledCount = models.IntegerField(default=0)
     interviewedCount = models.IntegerField(default=0)
     rejectedCount = models.IntegerField(default=0)
+    onHoldCount = models.IntegerField(default=0)
+    onlineProgExamPendingCount = models.IntegerField(default=0)
+    onlineProgExamDoneCount = models.IntegerField(default=0)
 
 class JobSettings(models.Model):
 	companyId = models.CharField(max_length=30, primary_key=True)
