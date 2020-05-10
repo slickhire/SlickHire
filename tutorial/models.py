@@ -38,3 +38,12 @@ class JobProfile(models.Model):
     exp1 = models.CharField(max_length=30)
     exp2 = models.CharField(max_length=30)
     calendar = models.CharField(max_length=5000)
+
+class JobSettings(models.Model):
+	companyId = models.CharField(max_length=30, primary_key=True)
+	smsEnabled = models.BooleanField(default=False)
+	whatsappEnabled = models.BooleanField(default=False)
+	emailEnabled = models.BooleanField(default=False)
+	voiceEnabled = models.BooleanField(default=False)
+	remindersCount = models.IntegerField(default=0)
+	onlineExamEnabled = models.BooleanField(default=False)

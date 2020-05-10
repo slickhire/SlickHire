@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.icons8.com/fonts/line-awesome/1.1/css/line-awesome-font-awesome.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/air-datepicker/2.2.3/js/datepicker.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/air-datepicker/2.2.3/js/i18n/datepicker.en.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+    <script type="text/javascript">
+      	$(".enableOnlineProg").click(function() {
+      	    $("#textField").attr("disabled", true);
+      	    if ($("input[name=ynRadio]:checked").val() == "yes") {
+      	        $("#textField").attr("disabled", false);
+      	    }
+      	});
+    </script>
+  </head>
+  <body>
+    <br>
+    <h3>Account Settings</h3>
+    <br>
+    <div id="accordion">
+      <div class="card">
+        <div class="card-header" id="headingOne">
+          <h3 class="mb-0">
+            <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+               Job Settings
+            </button>
+          </h3>
+        </div>
+
+      <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+        <div class="card-body">
+          <form id="job-settings" method="post" action="/settings/job" target="_self"> {% csrf_token %}
+   			<h4>Choose the communication mode with the candidates</h4>
+            <input type="checkbox" id="whatsapp" name="Whatsapp" value=True>
+            <label for="whatsapp"> Whatsapp</label><br>
+            <input type="checkbox" id="sms" name="sms" value=True>
+            <label for="sms"> SMS</label><br>
+            <input type="checkbox" id="email" name="email" value=True>
+            <label for="email"> Email</label><br>
+            <input type="checkbox" id="voice" name="voice" value=True>
+            <label for="voice"> Voice</label><br><br>
+            <input type="checkbox" id="onlineProgramming" name="onlineProg" value=True>
+            <label for="onlineProgramming"> 
+			    <h4>Enable Online Programming Tests</h4>
+		    </label>
+
+			<br><br>
+
+			<h4>Would you like to send reminders to candidates?</h4>
+			<input type="radio" name="ynRadio" class="enableOnlineProg" value="yes" /> Yes
+			<input type="radio" name="ynRadio" class="disableOnlineProg" value="no" /> No
+			<br/>
+			<input type="text" id="textField" name="remindCount" placeholder="Number of reminders"/>
+
+			<br><br>
+
+            <button type="submit" class="btn btn-primary">Save</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

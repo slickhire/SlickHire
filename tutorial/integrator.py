@@ -107,15 +107,16 @@ def AddPerson(rparser):
 	print("latest",rparser['name'],rparser['email'],rparser['mobile_number'])
 	p = models.Person(name=rparser['name'], mobile=rparser['mobile_number'], stringId = get_random_string(length=30), questions = "qa",email=rparser['email']
 					,skills=rparser['skills'],status="pending",score=0,education=rparser['education'],experience=rparser['experience'], reminderscount=0)
-	#p.save()
 	id = "ec2-3-17-12-192.us-east-2.compute.amazonaws.com/questions?id=" + p.stringId
 	optout_link = 'ec2-3-17-12-192.us-east-2.compute.amazonaws.com/opt_out?id=' + p.stringId
-	print("kempa heer sms")
-	sendSMS("+919742437310","xyz",id)
-	print("kempa heer call")
-	makeVoiceCall("+919742437310","kempa")
-	print("kempa heer save")
-	send_email(rparser['name'],"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, "anthony_1087@yahoo.com")
+    jobConfig = JobSettings.objects.get(companyId="1")
+    if jobConfig:
+       	if jobConfig.smsEnabled:
+			sendSMS("+919742437310","xyz",id)
+		if jobConfig.voiceEnabled:
+			makeVoiceCall("+919742437310","kempa")
+		if jobConfig.emailEnabled:
+			send_email(rparser['name'],"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, "anthony_1087@yahoo.com")
 	p.save()
 
 def Extarct_Files(newFile):
@@ -165,18 +166,29 @@ def StartQuestionaireReminder():
 
     if not isReminderAllowedAtThisTime():
         return
+    
+	jobConfig = JobSettings.objects.get(companyId="1")
+	if not jobConfig:
+		return
+
+	if jobConfig.remindersCount == 0:
+		return
 
     candidates = models.Person.objects.all()
     allCandidatesResponded = True
     for candidate in candidates:
         if candidate.status != 'Received':
-             allCandidatesResponded = False
-             candQuestionsUrl = "ec2-3-17-12-192.us-east-2.compute.amazonaws.com/questions?id={}".format(candidate.stringId)
-             optout_link = 'ec2-3-17-12-192.us-east-2.compute.amazonaws.com/opt_out?id=' + candidate.stringId
-             sendSMS("+919008718152", "xyz", candQuestionsUrl)
-             send_email(candidate.name, "Developer","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs", candQuestionsUrl, optout_link, "anthony_1087@yahoo.com")
-             print("Reminder Sent")
-             candidate.reminderscount += 1
-             if candidate.reminderscount == 3:
-                 candidate.delete()
+            allCandidatesResponded = False
+            candQuestionsUrl = "ec2-3-17-12-192.us-east-2.compute.amazonaws.com/questions?id={}".format(candidate.stringId)
+            optout_link = 'ec2-3-17-12-192.us-east-2.compute.amazonaws.com/opt_out?id=' + candidate.stringId
+    		if jobConfig.smsEnabled:
+				sendSMS("+919742437310","xyz",id)
+			if jobConfig.voiceEnabled:
+				makeVoiceCall("+919742437310","kempa")
+			if jobConfig.emailEnabled:
+				send_email(rparser['name'],"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, "anthony_1087@yahoo.com")
+            print("Reminder Sent")
+            candidate.reminderscount += 1
+            if candidate.reminderscount == jobConfig.remindersCount:
+                candidate.delete()
 '''

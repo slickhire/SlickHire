@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from . import views
+#from .integrator import CallHandler
 #from .integrator import StartQuestionaireReminder
 urlpatterns = [
     path('index/', views.index),
@@ -28,6 +29,10 @@ urlpatterns = [
     path('jprofile/delete_job/', views.deleteJob),
     path('calendar', views.calendar),
     path('calendarCandidate', views.calendarCandidate),
-    path('',views.homepage, name="homepage")
+    path('',views.homepage, name="homepage"),
+    path('settings', views.settings),
+    path('settings/job', views.jobSettings)
 ]
+
+#CallHandler()
 #StartQuestionaireReminder(repeat=5, repeat_until=None)

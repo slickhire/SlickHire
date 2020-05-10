@@ -21,11 +21,3 @@ def handle_uploaded_file(f):
     with open('tutorial/static/upload/'+ dt_string + '_' + f.name, 'wb+') as destination:  
         for chunk in f.chunks():  
             destination.write(chunk) 
-
-    #CallHandler()
-    #StartQuestionaireReminder()
-
-    #p = models.Person(name="xyz", mobile="888", stringId = get_random_string(length=30), questions = "qa")
-    #p.save()
-    #p = models.Person(name="iaxyz", mobile="9888", stringId = get_random_string(length=30), questions = "qa")
-    #p.save()

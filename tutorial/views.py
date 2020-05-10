@@ -6,6 +6,7 @@ from django.core.serializers import serialize
 from django.http import JsonResponse
 from . import models
 from django.views.decorators.csrf import csrf_exempt
+import json
 
 def jprofile(request):
    return render(request, "jprofile.html")
@@ -174,5 +175,19 @@ def opt_out(request):
 def homepage(request):
     return HttpResponse("First App")
 
-# Create your views here.
+def settings(request):
+    return render(request, "settings.html")
 
+def jobSettings(request):
+	config = models.JobSettings( \
+				companyId="1",
+               	smsEnabled=request.POST.get('sms', False),
+				whatsappEnabled=request.POST.get('Whatsapp', False),
+				emailEnabled=request.POST.get('email', False),
+				voiceEnabled=request.POST.get('voice', False),
+				onlineExamEnabled=request.POST.get('onlineProg', False),
+				remindersCount=request.POST.get('remindCount', 0))
+	config.save()
+	return HttpResponse("Settings Saved")
+
+# Create your views here.
