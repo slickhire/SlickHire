@@ -1,6 +1,7 @@
 from django.db import models
 
 class Person(models.Model):
+    checkbox = models.CharField(max_length=1, default="")
     name = models.CharField(max_length=30)
     mobile = models.CharField(max_length=30, primary_key=True)
     experience = models.CharField(max_length=30)
@@ -8,6 +9,7 @@ class Person(models.Model):
     education = models.CharField(max_length=30)
     employer = models.CharField(max_length=30)
     skills = models.CharField(max_length=30)
+    emails = models.CharField(max_length=100)
     score = models.CharField(max_length=30)
     salary = models.CharField(max_length=30)
     email = models.CharField(max_length=30)
@@ -58,3 +60,7 @@ class JobSettings(models.Model):
 	voiceEnabled = models.BooleanField(default=False)
 	remindersCount = models.IntegerField(default=0)
 	onlineExamEnabled = models.BooleanField(default=False)
+
+class InternalLink(models.Model):
+    linkId = models.CharField(max_length=30, primary_key=True)
+    candidates = models.CharField(max_length=500)
