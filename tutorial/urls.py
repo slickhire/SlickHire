@@ -21,6 +21,10 @@ from . import views
 urlpatterns = [
     path('index/', views.index),
     path('index/data/', views.data),
+    path('index/send_link/', views.sendLink),
+    path('getLink', views.getLink),
+    path('getLink/data/', views.getLinkData),
+    path('getLink/send_interview_link/', views.sendInterviewLink),
     path('questions', views.questions),
     path('opt_out', views.opt_out),
     path('jprofile',views.jprofile),
