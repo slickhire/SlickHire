@@ -49,8 +49,6 @@ ACCOUNT_SID = "ACbe9ca3f562c7d7fe80fc560db69fa588"
 AUTH_TOKEN = "9a8ffae380118f71a6e693956c34a4b5"
 SMS_NUMBER = "+18125788368"
 MESSAGING_SERVICE_ID = "MG5eb6a2e338a34fa801960c2a827522d3"
-#url = ec2-3-17-12-192.us-east-2.compute.amazonaws.com/questions?id=78WBofGQAosaqRAAD3MEpkZbSdALq5
-#id is unique user i
 def sendSMS(mobilenumber,message,url):
 	print("kempa her",mobilenumber)
 	client = Client(ACCOUNT_SID, AUTH_TOKEN)
@@ -118,6 +116,9 @@ def AddPerson(rparser):
 		if jobConfig.emailEnabled:
 			send_email(rparser['name'],"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, "anthony_1087@yahoo.com")
 	p.save()
+    jobStats = models.JobProfile.objects.get(jobId__exact=p.questions)
+    jobStats.candidatesCount += 1
+    jobStats.save()
 
 def Extarct_Files(newFile):
 	print('Extract single file from ZIP')
@@ -191,4 +192,7 @@ def StartQuestionaireReminder():
             candidate.reminderscount += 1
             if candidate.reminderscount == jobConfig.remindersCount:
                 candidate.delete()
+				jobStats = models.JobProfile.objects.get(jobId__exact=candidate.questions
+				jobStats.discardedCount += 1
+				jobStats.save()
 '''

@@ -25,7 +25,7 @@ class Questions(models.Model):
     expected2 = models.CharField(max_length=30)
 
 class JobProfile(models.Model):
-    jobId = models.CharField(max_length=30, primary_key=True)
+    jobId = models.CharField(max_length=100, primary_key=True)
     designation = models.CharField(max_length=30)
     experience = models.CharField(max_length=30)
     salary = models.CharField(max_length=30)
@@ -38,6 +38,14 @@ class JobProfile(models.Model):
     exp1 = models.CharField(max_length=30)
     exp2 = models.CharField(max_length=30)
     calendar = models.CharField(max_length=5000)
+    candidatesCount = models.IntegerField(default=0)
+    discardedCount = models.IntegerField(default=0)
+    optedOutCount = models.IntegerField(default=0)
+    interestedCount = models.IntegerField(default=0)
+    shortlistedCount = models.IntegerField(default=0)
+    interviewScheduledCount = models.IntegerField(default=0)
+    interviewedCount = models.IntegerField(default=0)
+    rejectedCount = models.IntegerField(default=0)
 
 class JobSettings(models.Model):
 	companyId = models.CharField(max_length=30, primary_key=True)

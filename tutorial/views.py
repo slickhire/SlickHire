@@ -14,8 +14,10 @@ def jprofile(request):
 def deleteJob(request):
     try:
         data = models.JobProfile.objects.get(jobId__exact=request.POST['jobid'])
-        data.delete()
-    except models.Person.DoesNotExist:
+        if data:
+        	data.delete()
+
+    except models.JobProfile.DoesNotExist:
         print("")
     return HttpResponse("success")
 
@@ -74,6 +76,7 @@ def saveJob(request):
 
     job = models.JobProfile(jobId=request.POST['jobid'], designation=request.POST['designation'], experience = request.POST['exp'], salary = request.POST['salary'], notice = request.POST['notice'], skills = request.POST['skills'], salary1 = salary[0], salary2 = salary[1], exp1 = exp[0], exp2 = exp[1], notice1 = notice[0], notice2 = notice[1])
     job.save()
+
     return HttpResponse("success")
 
 def index(request):  
@@ -88,12 +91,7 @@ def index(request):
 
 def data(request):
     data = list(models.Person.objects.values_list())
-    #print(JsonResponse({'data': data}), safe=False)
-    #data = [{'id': 1, 'name': 'xyz', 'mobile': '888', 'experience': '', 'institute': '', 'education': '', 'employer': '', 'skills': '', 'score': '', 'salary': '1', 'email': '', 'status': '2'}]
-  #  data = [['id': '1', "name": "xyz", "mobile": "888", "experience": "", "institute": "", "education": "", "employer": "", "skills": "", "score": "", "salary": "1", "email": "", "status": "2"]]
-    #return JsonResponse(data, safe=False)
     return JsonResponse({"draw": 1, "recordsTotal": 1, "recordsFiltered": 1, "data": data}, safe=False)
-    #return JsonResponse(serialize('json', list(models.Person.objects.values()), safe=False))#, cls=LazyEncoder))
 
 def GetScore(percentage, threshold1, threshold2, value):
     if int(threshold1) > int(value):
@@ -140,6 +138,10 @@ def questions(request):
             score += (int(request.POST[q]) * weightPerQuestion) / 10
         data.score = score
         data.save()
+
+        row.interestedCount += 1
+        row.save()
+
         return HttpResponse("Data submitted successfuly" + request.POST['strId'])
     else:
         id = request.GET["id"]
@@ -164,6 +166,9 @@ def opt_out(request):
         candidate = models.Person.objects.only('questions').filter(stringId__exact=request.POST['strId'])
         if candidate:
             candidate.delete()
+            jobStats = models.JobProfile.objects.get(jobId__exact=candidate.questions)
+            jobStats.optedOutCount += 1
+            jobStats.save()
             return HttpResponse("You have successfuly opted-out")
         else:
             return HttpResponse("Invalid Request")
