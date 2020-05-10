@@ -7,6 +7,9 @@ from django.http import JsonResponse
 from . import models
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.utils.crypto import get_random_string
+from django.core.mail import send_mail
+from django.conf import settings
 
 def jprofile(request):
    return render(request, "jprofile.html")
@@ -66,6 +69,62 @@ def calendar(request):
             row.save()
         return HttpResponse("success")
 
+@csrf_exempt
+def sendInterviewLink(request):
+    candidates = request.POST.getlist('candidates[]')
+    for i in candidates:
+        print(i)
+        candidate = models.Person.objects.get(mobile__exact=i)
+        candidate.status = "Invited"
+        url = "http://127.0.0.1:8000/calendarCandidate?id=" + candidate.stringId
+        res = send_mail("Book Interview Slot", url, settings.EMAIL_HOST_USER, candidate.email)
+        candidate.save()
+    return HttpResponse("success")
+
+
+@csrf_exempt
+def sendLink(request):
+    candidates = request.POST.getlist('candidates[]')
+    candidatesStr = ' '.join(candidates);
+    row = models.InternalLink(linkId=get_random_string(length=30), candidates=candidatesStr)
+    print(row.linkId)
+    row.save()
+    data = models.Person.objects.only('questions').get(mobile__exact=candidates[0])
+    emails = models.JobProfile.objects.only('emails').get(jobId__exact=data.questions)
+    url = "http://127.0.0.1:8000/getLink?linkId=" + row.linkId
+    res = send_mail("Candidate Shortlisted", url, settings.EMAIL_HOST_USER, emails.emails.split(","))
+    print(candidatesStr)
+    return HttpResponse("success")
+
+def getLinkData(request):
+    linkId = request.GET["linkId"]
+    print(linkId)
+    data = models.InternalLink.objects.get(linkId__exact=linkId)
+    print("candidates saved are", data.candidates)
+    splits = data.candidates.split()
+    print(splits)
+
+    candList = []
+    #for loop to iterate over words array
+    for cid in splits:
+        print(cid)
+        candidate = models.Person.objects.values_list('checkbox', 'name', 'mobile', 'experience','institute', 'education', 'employer', 'skills', 'score', 'email', 'status').get(mobile__exact=cid)
+        candList.append(list(candidate))
+        print(candidate, candList)
+ 
+    return JsonResponse({"draw": 1, "recordsTotal": 1, "recordsFiltered": 1, "data": candList}, safe=False)
+
+def getLink(request):
+    linkId = request.GET["linkId"]
+    if linkId == "":
+        return HttpResponse("Invalid Request")
+    try:
+        data = models.InternalLink.objects.get(linkId__exact=linkId)
+    except models.InternalLink.DoesNotExist:
+        return HttpResponse("Invalid Request")
+
+
+    return render(request,"getLink.html",{'linkId':linkId})
 
 @csrf_exempt
 def saveJob(request):
