@@ -2,25 +2,17 @@
 #
 # See: http://github.com/seb-m/pyinotify/wiki/Tutorial
 #
-'''
-import pyinotify
 from zipfile import ZipFile
-import os 
-import time
-import sys
+import os, shutil, time, sys
+from datetime import datetime
 sys.path.insert(1, '/home/ubuntu/ResumeParser/resume_parser/resume_parser')
 import resume_parser
 from django.utils.crypto import get_random_string
-
 from . import models
-#import models
 from background_task import background
 from django.contrib.auth.models import User
 from twilio.rest import Client
-
-#email import starts
 from django.contrib.auth.models import User
-
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.conf import settings
@@ -29,22 +21,7 @@ from django.core.mail import send_mail,EmailMessage
 from django.template import Context
 from django.template.loader import render_to_string, get_template
 from django.template import Context
-#email import ends
 
-wm = pyinotify.WatchManager()  # Watch Manager
-mask = pyinotify.IN_CREATE  # watched events
-"""
-        self.__details = {
-            'name'              : None,
-            'email'             : None,
-            'mobile_number'     : None,
-            'skills'            : None,
-            'education'         : None,
-            'experience'        : None,
-            'competencies'      : None,
-            'measurable_results': None
-        }
-"""
 ACCOUNT_SID = "ACbe9ca3f562c7d7fe80fc560db69fa588"
 AUTH_TOKEN = "9a8ffae380118f71a6e693956c34a4b5"
 SMS_NUMBER = "+18125788368"
@@ -107,21 +84,21 @@ def AddPerson(rparser):
 					,skills=rparser['skills'],status="pending",score=0,education=rparser['education'],experience=rparser['experience'], reminderscount=0)
 	id = "ec2-3-17-12-192.us-east-2.compute.amazonaws.com/questions?id=" + p.stringId
 	optout_link = 'ec2-3-17-12-192.us-east-2.compute.amazonaws.com/opt_out?id=' + p.stringId
-    jobConfig = JobSettings.objects.get(companyId="1")
-    if jobConfig:
-       	if jobConfig.smsEnabled:
+	jobConfig = models.JobSettings.objects.get(companyId="1")
+	if jobConfig:
+		if jobConfig.smsEnabled:
 			sendSMS("+919742437310","xyz",id)
 		if jobConfig.voiceEnabled:
 			makeVoiceCall("+919742437310","kempa")
 		if jobConfig.emailEnabled:
 			send_email(rparser['name'],"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, "anthony_1087@yahoo.com")
 	p.save()
-    jobStats = models.JobProfile.objects.get(jobId__exact=p.questions)
-    jobStats.candidatesCount += 1
-    jobStats.save()
+	jobStats = models.JobProfile.objects.get(jobId__exact=p.questions)
+	jobStats.candidatesCount += 1
+	jobStats.save()
 
-def Extarct_Files(newFile):
-	print('Extract single file from ZIP')
+def Extract_Files(newFile):
+	print('Extract single file from ZIP', newFile)
 	with ZipFile(newFile, 'r') as zipObj:
 		listOfFileNames = zipObj.namelist()
 		for fileName in listOfFileNames:
@@ -130,29 +107,17 @@ def Extarct_Files(newFile):
 			parser = resume_parser.ResumeParser(fileName)
 			AddPerson(parser.get_extracted_data())
 
-class EventHandler(pyinotify.ProcessEvent):
-	def process_IN_CREATE(self, event):
-		fileType = os.path.splitext(event.pathname)[-1].lower()
-		print("Received created event file and type." ,event.pathname)
-		if fileType == ".zip":
-			#issue is event is created when the new file is created we need
-			#till complete upload is done. hence adding the delay
-			time.sleep(5)
-			Extarct_Files(event.pathname)
-		else:
-			print("Unknown file Type Return Error")
-
-@background(schedule=2)
+@background(schedule=5)
 def CallHandler():
-	handler = EventHandler()
-	notifier = pyinotify.Notifier(wm, handler)
-	wdd = wm.add_watch('/home/ubuntu/slick_hire/tutorial/static/upload/', mask, rec=True)
-	print("Watching for new file")
-	notifier.loop()
-
-import time
-from datetime import datetime
-
+    print("Checking for any uploaded files")
+    uploadedFiles = os.listdir(os.path.join(settings.BASE_DIR, 'tutorial/static/upload/'))
+    for uploadedFile in uploadedFiles:
+        print(uploadedFile)
+        filename = os.path.join(settings.BASE_DIR, 'tutorial/static/upload/', uploadedFile)
+        if os.path.splitext(uploadedFile)[-1].lower() == ".zip":
+            Extract_Files(filename)
+        shutil.move(filename, os.path.join(settings.BASE_DIR, 'tutorial/static/processed/'))
+            
 def isReminderAllowedAtThisTime():
     now = datetime.now() 
     currentHour = int(now.strftime("%H"))
@@ -168,12 +133,12 @@ def StartQuestionaireReminder():
     if not isReminderAllowedAtThisTime():
         return
     
-	jobConfig = JobSettings.objects.get(companyId="1")
-	if not jobConfig:
-		return
+    jobConfig = models.JobSettings.objects.get(companyId="1")
+    if not jobConfig:
+        return
 
-	if jobConfig.remindersCount == 0:
-		return
+    if jobConfig.remindersCount == 0:
+        return
 
     candidates = models.Person.objects.all()
     allCandidatesResponded = True
@@ -182,17 +147,16 @@ def StartQuestionaireReminder():
             allCandidatesResponded = False
             candQuestionsUrl = "ec2-3-17-12-192.us-east-2.compute.amazonaws.com/questions?id={}".format(candidate.stringId)
             optout_link = 'ec2-3-17-12-192.us-east-2.compute.amazonaws.com/opt_out?id=' + candidate.stringId
-    		if jobConfig.smsEnabled:
-				sendSMS("+919742437310","xyz",id)
-			if jobConfig.voiceEnabled:
-				makeVoiceCall("+919742437310","kempa")
-			if jobConfig.emailEnabled:
-				send_email(rparser['name'],"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, "anthony_1087@yahoo.com")
+            if jobConfig.smsEnabled:
+            	sendSMS("+919742437310","xyz",id)
+            if jobConfig.voiceEnabled:
+            	makeVoiceCall("+919742437310","kempa")
+            if jobConfig.emailEnabled:
+            	send_email(rparser['name'],"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, "anthony_1087@yahoo.com")
             print("Reminder Sent")
             candidate.reminderscount += 1
             if candidate.reminderscount == jobConfig.remindersCount:
                 candidate.delete()
-				jobStats = models.JobProfile.objects.get(jobId__exact=candidate.questions
-				jobStats.discardedCount += 1
-				jobStats.save()
-'''
+                jobStats = models.JobProfile.objects.get(jobId__exact=candidate.questions)
+                jobStats.discardedCount += 1
+                jobStats.save()
