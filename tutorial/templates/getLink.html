@@ -3,9 +3,8 @@
 {% block main %}
  <form  method="post" class="post-form" enctype="multipart/form-data">
 {% csrf_token %}
-        {{ form.as_p }}
-    <button  type="submit"  class="btn btn-success">Upload</button>
-</form> 
+<input type="hidden" id="linkId" name="linkId" value= {{ linkId }}>
+ </form> 
 <table id="example" class="table table-striped table-bordered table-hover" style="width:100%">
         <thead  table-text-light bgcolor="#3b5998">
             <tr>
@@ -18,7 +17,6 @@
                 <th><font color="#fff">Employer</th>
 		<th><font color="#fff">Skills</th>
 		<th><font color="#fff">Score</th>
-		<th><font color="#fff">Salary</th>
 		<th><font color="#fff">Email</th>
 		<th><font color="#fff">Status</th>
             </tr>
@@ -36,14 +34,14 @@ $.fn.dataTable.ext.buttons.alert = {
     var data = table.row(this).data();
     candidates.push(data[2])
   });
-   $.post("send_link/",
+   $.post("getLink/send_interview_link/",
     {
        'candidates[]': candidates
     },
     function(data,status){
         $.alert({
         title: 'Alert!',
-        content: 'Link Sent!',
+        content: 'Interview Link Sent!',
     });
     });
 
@@ -51,10 +49,14 @@ $.fn.dataTable.ext.buttons.alert = {
 };
 
 $(document).ready(function() {
+     var url1 = 'getLink/data/?linkId=';
+     url1 = url1 + $('#linkId').val();
+	console.log($('#linkId').val());
+	console.log(url1)
      table = $('#example').DataTable({
 	    dom: 'lfBrtip',
             serverSide: false,
-            ajax:'data/',
+            ajax: url1,
     columnDefs: [ {
             orderable: false,
             className: 'select-checkbox',
@@ -70,7 +72,7 @@ $(document).ready(function() {
                 extend: 'alert',
 		type: 'button',
 		className: 'btn btn-success',
-                text: 'Send Link'
+                text: 'Send Interview Link'
 	    }], dom: {
 		  button: {
 		  className: 'btn'

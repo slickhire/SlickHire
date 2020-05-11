@@ -18,6 +18,7 @@
                 <th><font color="#fff">Salary Range</th>
                 <th><font color="#fff">Notice Period</th>
                 <th><font color="#fff">Skills</th>
+		<th><font color="#fff">Emails</th>
 		<th><font color="#fff">Action</th>
             </tr>
         </thead>
@@ -83,6 +84,11 @@
   <input type="text" class="form-control input-sm" id="skills">
   <p></p>
          </div>
+<div class="form-group form-inline">
+  <label>Emails: &nbsp</label>
+  <input type="text" class="form-control input-sm" id="emails">
+  <p></p>
+         </div>
 
       </div>
       <div class="modal-footer">
@@ -109,6 +115,7 @@ $('#add').click(function(){
             $('#salary').val("");
             $('#notice').val("");
             $('#skills').val("");
+	    $('#emails').val("");
 
 $('#exampleModal').modal('show');
 });
@@ -121,7 +128,8 @@ $('#save').click(function(){
        exp: $('#exp').val(),
        salary: $('#salary').val(),
        notice: $('#notice').val(),
-       skills: $('#skills').val()
+       skills: $('#skills').val(),
+       emails: $('#emails').val(),
     },
     function(data,status){
         $.alert({
@@ -165,6 +173,7 @@ $('#example tbody').on( 'click', 'button', function () {
             $('#salary').val(data[3]);
             $('#notice').val(data[4]);
             $('#skills').val(data[5]);
+	    $('#emails').val(data[6]);
         $('#exampleModal').modal('show');
 
 	}
