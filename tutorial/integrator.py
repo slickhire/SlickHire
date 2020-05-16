@@ -87,11 +87,11 @@ def AddPerson(rparser):
 	jobConfig = models.JobSettings.objects.get(companyId="1")
 	if jobConfig:
 		if jobConfig.smsEnabled:
-			sendSMS("+919742437310","xyz",id)
+			sendSMS(p.mobile, "xyz", id)
 		if jobConfig.voiceEnabled:
-			makeVoiceCall("+919742437310","kempa")
+			makeVoiceCall(p.mobile, "kempa")
 		if jobConfig.emailEnabled:
-			send_email(rparser['name'],"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, "anthony_1087@yahoo.com")
+			send_email(rparser['name'],"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, p.email)
 	p.save()
 	jobStats = models.JobProfile.objects.get(jobId__exact=p.questions)
 	jobStats.candidatesCount += 1
@@ -140,19 +140,19 @@ def StartQuestionaireReminder():
     if jobConfig.remindersCount == 0:
         return
 
+    currentTimestamp = int(time.time())
+
     candidates = models.Person.objects.all()
-    allCandidatesResponded = True
     for candidate in candidates:
-        if candidate.status != 'Received':
-            allCandidatesResponded = False
+        if candidate.status != 'Received' and currentTimestamp >= candidate.nextReminderTimestamp:
             candQuestionsUrl = "ec2-3-17-12-192.us-east-2.compute.amazonaws.com/questions?id={}".format(candidate.stringId)
             optout_link = 'ec2-3-17-12-192.us-east-2.compute.amazonaws.com/opt_out?id=' + candidate.stringId
             if jobConfig.smsEnabled:
-            	sendSMS("+919742437310","xyz",id)
+            	sendSMS(candidate.mobile, "xyz", id)
             if jobConfig.voiceEnabled:
-            	makeVoiceCall("+919742437310","kempa")
+            	makeVoiceCall(candidate.mobile, "kempa")
             if jobConfig.emailEnabled:
-            	send_email(rparser['name'],"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, "anthony_1087@yahoo.com")
+            	send_email(rparser['name'],"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, candidate.email)
             print("Reminder Sent")
             candidate.reminderscount += 1
             if candidate.reminderscount == jobConfig.remindersCount:
@@ -160,3 +160,6 @@ def StartQuestionaireReminder():
                 jobStats = models.JobProfile.objects.get(jobId__exact=candidate.questions)
                 jobStats.discardedCount += 1
                 jobStats.save()
+            else:
+                candidate.nextReminderTimestamp = currentTimestamp + 86400
+                candidate.save()

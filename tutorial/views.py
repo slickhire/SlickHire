@@ -10,6 +10,7 @@ import json
 from django.utils.crypto import get_random_string
 from django.core.mail import send_mail
 from django.conf import settings
+from time import time
 
 def jprofile(request):
    return render(request, "jprofile.html")
@@ -165,6 +166,7 @@ def questions(request):
     if request.method == 'POST':
         data = models.Person.objects.only('questions').get(stringId__exact=request.POST['strId'])
         data.status = "Received"
+        data.nextReminderTimestamp = 0
         row = models.JobProfile.objects.get(jobId__exact=data.questions)
         score = 0
         data.experience = request.POST['experience']
@@ -216,6 +218,9 @@ def questions(request):
         skillList = []
         for x in row.skills.split(','):
             skillList.append(x)
+
+        data.nextReminderTimestamp = int(time.time()) + 86400
+        data.save()
 
         return render(request,"questions.html", {'qs': skillList, 'stringId': id})
 
