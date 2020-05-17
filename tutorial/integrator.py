@@ -5,8 +5,8 @@
 from zipfile import ZipFile
 import os, shutil, time, sys
 from datetime import datetime
-sys.path.insert(1, '/home/ubuntu/ResumeParser/resume_parser/resume_parser')
-import resume_parser
+#sys.path.insert(1, '/home/ubuntu/ResumeParser/resume_parser/resume_parser')
+from . import resume_parser
 from django.utils.crypto import get_random_string
 from . import models
 from background_task import background
