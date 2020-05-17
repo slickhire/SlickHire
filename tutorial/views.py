@@ -139,6 +139,19 @@ def saveJob(request):
 
     return HttpResponse("success")
 
+@csrf_exempt
+def upload(request):
+    if request.method == 'POST':
+        student = StudentForm(request.POST, request.FILES)
+        print("Post received", student.is_valid(), request.FILES['file'], request.POST['jobId'])
+        if student.is_valid():
+            handle_uploaded_file(request.FILES['file'], request.POST['jobId'])
+            return HttpResponse("File uploaded successfuly")
+    else:
+        jobIdList = list(models.JobProfile.objects.order_by().values_list('jobId', flat=True).distinct())
+        student = StudentForm()
+        return render(request,"upload.html",{'form':student, 'jobIdList':jobIdList})
+
 def index(request):  
     if request.method == 'POST': 
         student = StudentForm(request.POST, request.FILES)
@@ -146,13 +159,14 @@ def index(request):
             handle_uploaded_file(request.FILES['file'])  
             return HttpResponse("File uploaded successfuly")  
     else: 
+        jobIdList = list(models.JobProfile.objects.order_by().values_list('jobId', flat=True).distinct())
         student = StudentForm()
-        return render(request,"index.html",{'form':student})    
+        return render(request,"index.html",{'form':student, 'jobIdList':jobIdList})    
 
 def data(request):
-    data = list(models.Person.objects.values_list())
+    data = list(models.Person.objects.values_list().filter(questions=request.GET['jobId']))
     return JsonResponse({"draw": 1, "recordsTotal": 1, "recordsFiltered": 1, "data": data}, safe=False)
-
+  
 def GetScore(percentage, threshold1, threshold2, value):
     if int(threshold1) > int(value):
         diff = int(threshold1) - int(value)
