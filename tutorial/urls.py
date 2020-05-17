@@ -21,6 +21,7 @@ from .integrator import StartQuestionaireReminder
 urlpatterns = [
     path('index/', views.index),
     path('index/data/', views.data),
+    path('upload/', views.upload),
     path('index/send_link/', views.sendLink),
     path('getLink', views.getLink),
     path('getLink/data/', views.getLinkData),
