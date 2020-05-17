@@ -15,9 +15,9 @@ def email():
     recipient_list = ['rajeshwarp2002@gmail.com',]
     send_mail( subject, message, email_from, recipient_list )
 
-def handle_uploaded_file(f):
+def handle_uploaded_file(f, jobId):
     now = datetime.now()
     dt_string = now.strftime("%d_%m_%Y_%H:%M:%S")
-    with open('tutorial/static/upload/'+ dt_string + '_' + f.name, 'wb+') as destination:  
+    with open('tutorial/static/upload/'+ + jobId + '|' + dt_string + '_' + f.name, 'wb+') as destination:  
         for chunk in f.chunks():  
             destination.write(chunk) 
