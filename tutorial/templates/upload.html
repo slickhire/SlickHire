@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block main %}
+
+<div style="margin-top:15px;">
+</div>
+
+<form  method="post" id = "uploadForm" class="post-form" enctype="multipart/form-data">
+<div class="custom-file mb-3">
+      <input type="file" class="custom-file-input" id="customFile" name="file">
+      <label class="custom-file-label" for="customFile">Choose file</label>
+    </div>
+
+	<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <select class="mdl-textfield__input" id="jobId" name="jobId">
+      <option></option>
+      {% for obj in jobIdList %}
+      <option value="{{ obj }}" id = {{ obj }}> {{ obj }}</option>
+      {% endfor %}
+    </select>
+    <label class="mdl-textfield__label" for="octane">JobId</label>
+  </div>
+&nbsp;&nbsp;&nbsp;
+
+	<button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+ Upload 
+</button>
+
+</form>
+	<script>
+		// this is the id of the form
+$("#uploadForm").submit(function(e) {
+
+    e.preventDefault(); // avoid to execute the actual submit of the form.
+
+    var form = $(this);
+    var url = form.attr('action');
+   var form = $("#uploadForm");
+
+    // you can't pass Jquery form it has to be javascript form object
+    var formData = new FormData(form[0]);
+    $.ajax({
+           type: "POST",
+           url: url,
+	    contentType: false,
+    processData: false,
+           data: formData, // serializes the form's elements.
+           success: function(data)
+           {
+		   $.alert({
+        title: 'Alert!',
+        content: data,
+    });
+
+           }
+         });
+
+
+});
+$(".custom-file-input").on("change", function() {
+  var fileName = $(this).val().split("\\").pop();
+  $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+});
+
+	</script>
+{% endblock %}
+
