@@ -77,8 +77,9 @@ def sendInterviewLink(request):
         print(i)
         candidate = models.Person.objects.get(mobile__exact=i)
         candidate.status = "Invited"
-        url = "http://127.0.0.1:8000/calendarCandidate?id=" + candidate.stringId
-        res = send_mail("Book Interview Slot", url, settings.EMAIL_HOST_USER, candidate.email)
+        url = "http://ec2-3-17-12-192.us-east-2.compute.amazonaws.com/calendarCandidate?id=" + candidate.stringId
+        #res = send_mail("Book Interview Slot", url, settings.EMAIL_HOST_USER, candidate.email)
+        send_mail('Book Interview Slot', url, settings.EMAIL_HOST_USER, [candidate.email], fail_silently = False)
         candidate.save()
     return HttpResponse("success")
 
@@ -92,7 +93,7 @@ def sendLink(request):
     row.save()
     data = models.Person.objects.only('questions').get(mobile__exact=candidates[0])
     emails = models.JobProfile.objects.only('emails').get(jobId__exact=data.questions)
-    url = "http://127.0.0.1:8000/getLink?linkId=" + row.linkId
+    url = "http://ec2-3-17-12-192.us-east-2.compute.amazonaws.com/getLink?linkId=" + row.linkId
     res = send_mail("Candidate Shortlisted", url, settings.EMAIL_HOST_USER, emails.emails.split(","))
     print(candidatesStr)
     return HttpResponse("success")
@@ -134,7 +135,7 @@ def saveJob(request):
     exp = request.POST['exp'].split('-')
     notice = request.POST['notice'].split('-')
 
-    job = models.JobProfile(jobId=request.POST['jobid'], designation=request.POST['designation'], experience = request.POST['exp'], salary = request.POST['salary'], notice = request.POST['notice'], skills = request.POST['skills'], salary1 = salary[0], salary2 = salary[1], exp1 = exp[0], exp2 = exp[1], notice1 = notice[0], notice2 = notice[1])
+    job = models.JobProfile(jobId=request.POST['jobid'], designation=request.POST['designation'], experience = request.POST['exp'], salary = request.POST['salary'], notice = request.POST['notice'], skills = request.POST['skills'], salary1 = salary[0], salary2 = salary[1], exp1 = exp[0], exp2 = exp[1], notice1 = notice[0], notice2 = notice[1], emails=request.POST['emails'])
     job.save()
 
     return HttpResponse("success")
@@ -258,7 +259,7 @@ def opt_out(request):
 def homepage(request):
     return HttpResponse("First App")
 
-def settings(request):
+def clientSettings(request):
     return render(request, "settings.html")
 
 def jobSettings(request):

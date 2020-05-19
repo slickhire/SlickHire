@@ -35,7 +35,7 @@ urlpatterns = [
     path('calendar', views.calendar),
     path('calendarCandidate', views.calendarCandidate),
     path('',views.homepage, name="homepage"),
-    path('settings', views.settings),
+    path('settings', views.clientSettings),
     path('settings/job', views.jobSettings)
 ]
 

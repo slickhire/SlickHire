@@ -9,6 +9,9 @@ from datetime import datetime
 
 from . import resume_parser
 from . import models
+from .twilioUtils import sendSMS
+from .twilioUtils import makeVoiceCall
+from .twilioUtils import send_email
 
 from background_task import background
 from django.contrib.auth.models import User
@@ -23,10 +26,8 @@ from django.template import Context
 from django.template.loader import render_to_string, get_template
 from django.template import Context
 
-from . import twilioUtils
-
 def AddPerson(rparser, jobId):
-	print("latest",rparser['name'],rparser['email'],rparser['mobile_number'], rparser['skills'])
+	print("latest",rparser['name'],rparser['email'],rparser['mobile_number'], rparser['skills'], jobId)
 	jobProfile = models.JobProfile.objects.get(jobId__exact=jobId)
 	p = models.Person(name=rparser['name'],  \
                       mobile=rparser['mobile_number'], \
@@ -44,13 +45,13 @@ def AddPerson(rparser, jobId):
 	if jobConfig:
 		if jobConfig.smsEnabled:
 			smsStatus = ''
-			sendSMS(p.mobile, smsStatus, questions_link)
+			sendSMS(p.mobile, "xyz", questions_link)
 			print(smsStatus)
 		if jobConfig.voiceEnabled:
 			makeVoiceCall(p.mobile, "kempa")
 		if jobConfig.emailEnabled:
 			send_email(rparser['name'], \
-					   jobProfile.desgination, \
+					   jobProfile.designation, \
                        "Moto Rockr", \
                        "Dharwad", \
                        "www.SlickHire.in", \
@@ -64,7 +65,7 @@ def AddPerson(rparser, jobId):
 
 def Extract_Files(newFile):
 	print('Extract single file from ZIP', newFile)
-	jobId = newFile.split('.', -1)[0].split('_', -1)[1]
+	jobId = newFile.split('/', -1)[-1].split('#', 1)[0]
 	with ZipFile(newFile, 'r') as zipObj:
 		listOfFileNames = zipObj.namelist()
 		for fileName in listOfFileNames:
@@ -118,7 +119,7 @@ def StartQuestionaireReminder():
             if jobConfig.voiceEnabled:
             	makeVoiceCall(candidate.mobile, "kempa")
             if jobConfig.emailEnabled:
-            	send_email(rparser['name'],"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, candidate.email)
+            	send_email(candidate.name,"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, candidate.email)
             print("Reminder Sent")
             candidate.reminderscount += 1
             if candidate.reminderscount == jobConfig.remindersCount:
