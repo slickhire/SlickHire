@@ -64,6 +64,7 @@ $(document).ready(function() {
      table = $('#example').DataTable({
 	    dom: 'lfBrtip',
              scrollX: true,
+			 responsive: true,
             serverSide: false,
             ajax:'data?jobId=' + $('#jobId').find(":selected").text().trim(),
 	    orderable: false,

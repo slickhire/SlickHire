@@ -40,6 +40,7 @@ def AddPerson(rparser, jobId):
                       experience=rparser['experience'], \
                       reminderscount=0)
 	questions_link = "ec2-3-17-12-192.us-east-2.compute.amazonaws.com/questions?id=" + p.stringId
+	print(questions_link)
 	optout_link = 'ec2-3-17-12-192.us-east-2.compute.amazonaws.com/opt_out?id=' + p.stringId
 	jobConfig = models.JobSettings.objects.get(companyId="1")
 	if jobConfig:
