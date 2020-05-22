@@ -16,13 +16,13 @@
 </button>
 <div class = "mdl-layout-spacer"></div>
 <div class = "mdl-layout-spacer"></div>
-<table id="example" class="table-striped table" style="width:100%">
+<div class="box-body">
+<table id="example" class="table-striped table" style="table-layout:fixed;cursor:pointer;width:100%">
         <thead bgcolor="#2196F3">
             <tr>
 		<th></th>
                 <th>Name</th>
                 <th>Mobile</th>
-                <th>Experience</th>
                 <th>Institute</th>
                 <th>Education</th>
                 <th>Employer</th>
@@ -31,10 +31,12 @@
 		<th>Salary</th>
 		<th>Email</th>
 		<th>Status</th>
+        <!th>Experience</th>
             </tr>
         </thead>
 
 </table>
+</div>
        <script>
 var table
 $.fn.dataTable.ext.buttons.alert = {
@@ -93,35 +95,13 @@ $(document).ready(function() {
        }},
 	    order: [[ 1, 'asc' ]]
     });
- //table.on( 'click', function (e) {
-   //     e.preventDefault();
- 
-        // Get the column API object
-     //   var column = table.column( $(this).attr('data-column') );
- 
-        // Toggle the visibility
-       // column.visible( ! column.visible() );
-//    } );
-
-
 	
 	table.ajax.reload();
 
 })
      function GetJobIdCandidates() {
 	     console.log("clicked", $('#jobId').find(":selected").text(), $('jobId').find(":selected").val());
-     table.ajax.url('data?jobId=' + $('#jobId').find(":selected").text().trim()).load();
-	     /*$.ajax({
-url: 'data?jobId=' + $('#jobId').find(":selected").text().trim(),
-type: "get",
-}).done(function (result) {
-	console.log("result")
-table.clear().draw();
-table.rows.add(result).draw();
-	//table.ajax.reload(null, false);
-}).fail(function (jqXHR, textStatus, errorThrown) {
-// needs to implement if it fails
-});*/
+     	 table.ajax.url('data?jobId=' + $('#jobId').find(":selected").text().trim()).load();
      }
 
         </script>

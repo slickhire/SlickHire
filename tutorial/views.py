@@ -260,7 +260,11 @@ def homepage(request):
     return HttpResponse("First App")
 
 def clientSettings(request):
-    return render(request, "settings.html")
+    settings = models.JobSettings.objects.get(companyId__exact="1")
+    if settings:
+        return render(request, "settings.html", { "jobSettings": settings })
+    else:
+        return render(request, "settings.html", { "jobSettings": models.JobSettings() })
 
 def jobSettings(request):
 	config = models.JobSettings( \
@@ -269,7 +273,6 @@ def jobSettings(request):
 				whatsappEnabled=request.POST.get('Whatsapp', False),
 				emailEnabled=request.POST.get('email', False),
 				voiceEnabled=request.POST.get('voice', False),
-				onlineExamEnabled=request.POST.get('onlineProg', False),
 				remindersCount=request.POST.get('remindCount', 0))
 	config.save()
 	return HttpResponse("Settings Saved")

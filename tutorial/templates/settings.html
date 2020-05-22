@@ -1,15 +1,6 @@
 {% extends 'base.html' %}
 {% block main %}
-  <head>
-    <script type="text/javascript">
-      	$(".enableOnlineProg").click(function() {
-      	    $("#textField").attr("disabled", true);
-      	    if ($("input[name=ynRadio]:checked").val() == "yes") {
-      	        $("#textField").attr("disabled", false);
-      	    }
-      	});
-    </script>
-  </head>
+  <head> </head>
   <body>
     <br>
     <h3>Account Settings</h3>
@@ -26,33 +17,91 @@
 
       <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
         <div class="card-body">
-          <form id="job-settings" method="post" action="/settings/job" target="_self"> {% csrf_token %}
+          <form id="jobSettings" method="post" action="/settings/job" target="_self"> {% csrf_token %}
    			<h4>Choose the communication mode with the candidates</h4>
+			{% if jobSettings.whatsappEnabled %}
+            <input type="checkbox" id="whatsapp" name="Whatsapp" value=True Checked>
+            {% else %}
             <input type="checkbox" id="whatsapp" name="Whatsapp" value=True>
+			{% endif %}
             <label for="whatsapp"> Whatsapp</label><br>
+			{% if jobSettings.smsEnabled %}
+            <input type="checkbox" id="sms" name="sms" value=True Checked>
+            {% else %}
             <input type="checkbox" id="sms" name="sms" value=True>
+			{% endif %}
             <label for="sms"> SMS</label><br>
+			{% if jobSettings.emailEnabled %}
+            <input type="checkbox" id="email" name="email" value=True Checked>
+            {% else %}
             <input type="checkbox" id="email" name="email" value=True>
+			{% endif %}
             <label for="email"> Email</label><br>
+			{% if jobSettings.voiceEnabled %}
+            <input type="checkbox" id="voice" name="voice" value=True Checked>
+            {% else %}
             <input type="checkbox" id="voice" name="voice" value=True>
+			{% endif %}
             <label for="voice"> Voice</label><br><br>
-            <input type="checkbox" id="onlineProgramming" name="onlineProg" value=True>
-            <label for="onlineProgramming"> 
-			    <h4>Enable Online Programming Tests</h4>
-		    </label>
 
 			<br><br>
 
 			<h4>Would you like to send reminders to candidates?</h4>
-			<input type="radio" name="ynRadio" class="enableOnlineProg" value="yes" /> Yes
-			<input type="radio" name="ynRadio" class="disableOnlineProg" value="no" /> No
+			{% if jobSettings.remindersCount > 0 %}
+			<input type="radio" name="ynRadio" class="enableReminders" value="yes" checked="checked"/> Yes
+			<input type="radio" name="ynRadio" class="disableReminders" value="no" /> No
+			{% else %}
+			<input type="radio" name="ynRadio" class="enableReminders" value="yes"/> Yes
+			<input type="radio" name="ynRadio" class="disableReminders" value="no" checked="checked"/> No
+			{% endif %}
 			<br/>
-			<input type="text" id="textField" name="remindCount" placeholder="Number of reminders"/>
+			{% if jobSettings.remindersCount > 0 %}
+			<input type="text" id="textField" name="remindCount" placeholder="Number of reminders" value={{jobSettings.remindersCount}}>
+			{% else %}
+			<input type="text" id="textField" name="remindCount" placeholder="Number of reminders">
+			{% endif %}
 
 			<br><br>
 
             <button type="submit" class="btn btn-primary">Save</button>
           </form>
+		  <script>
+			// this is the id of the form
+			$("#jobSettings").submit(function(e) {
+
+    			e.preventDefault(); // avoid to execute the actual submit of the form.
+
+    			var form = $(this);
+    			var url = form.attr('action');
+   				var form = $("#jobSettings");
+
+    			// you can't pass Jquery form it has to be javascript form object
+    			var formData = new FormData(form[0]);
+    			$.ajax({
+           			type: "POST",
+           			url: url,
+	    			contentType: false,
+    				processData: false,
+           			data: formData, // serializes the form's elements.
+           			success: function(data)
+           			{
+		   				$.alert({
+        					title: 'Notification!',
+        					content: data,
+    					});
+
+           			}
+         		});
+			});
+		  </script>
+    	  <script>
+    	    	$(".disableReminders").click(function() {
+    	    	    $("#textField").attr("disabled", true);
+    	    	});
+    	    	$(".enableReminders").click(function() {
+    	    	    $("#textField").attr("disabled", false);
+    	    	});
+    	  </script>
         </div>
       </div>
     </div>

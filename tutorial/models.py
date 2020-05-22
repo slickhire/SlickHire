@@ -4,7 +4,6 @@ class Person(models.Model):
     checkbox = models.CharField(max_length=1, default="")
     name = models.CharField(max_length=30)
     mobile = models.CharField(max_length=30, primary_key=True)
-    experience = models.CharField(max_length=30)
     institute = models.CharField(max_length=30)
     education = models.CharField(max_length=30)
     employer = models.CharField(max_length=30)
@@ -13,6 +12,7 @@ class Person(models.Model):
     salary = models.CharField(max_length=30)
     email = models.CharField(max_length=30)
     status = models.CharField(max_length=30)
+    experience = models.CharField(max_length=30)
     stringId = models.CharField(max_length=30, db_index=True)
     questions = models.CharField(max_length=30)
     reminderscount = models.IntegerField(default=0)
@@ -61,7 +61,6 @@ class JobSettings(models.Model):
 	emailEnabled = models.BooleanField(default=False)
 	voiceEnabled = models.BooleanField(default=False)
 	remindersCount = models.IntegerField(default=0)
-	onlineExamEnabled = models.BooleanField(default=False)
 
 class InternalLink(models.Model):
     linkId = models.CharField(max_length=30, primary_key=True)
