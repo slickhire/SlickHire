@@ -5,7 +5,6 @@ from tutorial.forms import StudentForm
 from django.core.serializers import serialize
 from django.http import JsonResponse
 from . import models
-from .tasks import online_test_eval
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.utils.crypto import get_random_string
