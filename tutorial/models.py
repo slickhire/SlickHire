@@ -17,6 +17,20 @@ class Person(models.Model):
     questions = models.CharField(max_length=30)
     reminderscount = models.IntegerField(default=0)
     nextReminderTimestamp = models.IntegerField(default=0)
+    onlinetesteval = models.IntegerField(default=0)
+    onlinetestscore = models.IntegerField(default=0)
+    onlinetestcompileerrors = models.IntegerField(default=0)
+    onlinetestcomplete = models.IntegerField(default=0)
+    question1 = models.IntegerField(default=0)
+    question2 = models.IntegerField(default=0)
+    question3 = models.IntegerField(default=0)
+    question4 = models.IntegerField(default=0)
+    question5 = models.IntegerField(default=0)
+    answer1 = models.TextField(default="0")
+    answer2 = models.TextField(default="0")
+    answer3 = models.TextField(default="0")
+    answer4 = models.TextField(default="0")
+    answer5 = models.TextField(default="0")
 
 # Create your models here.
 class Questions(models.Model):
@@ -65,3 +79,24 @@ class JobSettings(models.Model):
 class InternalLink(models.Model):
     linkId = models.CharField(max_length=30, primary_key=True)
     candidates = models.CharField(max_length=500)
+	
+# Model answer keys and testcases for programs
+# type of question include "CHOICE" (1) , "PROGRAM"(0)
+# format for question is string. example: "Write a sample program to 
+# determine whether input is a leap year or not"
+# Test format is: format is inputs;outputs
+# example "2 3;5" here 2 and 3 are inputs and 5 is the expected output
+class OnlineTestKeys(models.Model):
+    qid = models.IntegerField(primary_key=True)
+    type = models.IntegerField()
+    question = models.TextField()
+    choice1 = models.TextField()
+    choice2 = models.TextField()
+    choice3 = models.TextField()
+    choice4 = models.TextField()
+    answer = models.TextField()
+    test1 = models.TextField() 
+    test2 = models.TextField()
+    test3 = models.TextField()
+    test4 = models.TextField()
+    test5 = models.TextField()
