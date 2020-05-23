@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block main %}
+ <form  method="post" class="post-form" id="onlinetest">
+{% csrf_token %}
+<div id="test-time-left"> </div>
+<script type="text/javascript">
+    if(localStorage.getItem("total_seconds")){
+        var total_seconds = localStorage.getItem("total_seconds");
+    } else {
+        var total_seconds = 3600;
+    }
+    var minutes = parseInt(total_seconds/60);
+    var seconds = parseInt(total_seconds%60);
+    function submitform(){ document.getElementById('onlinetest').submit(); }
+    function startTimer() {
+        localStorage.setItem("total_seconds", 100);
+        countDownTimer();
+    }
+    function countDownTimer(){
+        if(seconds < 10){
+            seconds= "0"+ seconds ;
+        }if(minutes < 10){
+            minutes= "0"+ minutes ;
+        }
+        
+        document.getElementById("test-time-left").innerHTML = "Time Left :"+minutes+"minutes"+seconds+"seconds";
+        if(total_seconds <= 0){
+            setTimeout("submitform();",1);
+        } else {
+            total_seconds = total_seconds -1 ;
+            minutes = parseInt(total_seconds/60);
+            seconds = parseInt(total_seconds%60);
+            localStorage.setItem("total_seconds",total_seconds)
+            setTimeout("countDownTimer()",1000);
+        }
+    }
+    setTimeout("startTimer()",1000);
+</script>
+
+{% for question in qs %}
+    {% for id, qtype, question, choice1, choice2, choice3, choice4, oldanswer in question %}
+        {% if qtype %}
+		    <strong>Q{{ id }} {{ question }}</strong>
+            <div class="form-group">
+                {% if oldanswer == choice1 %}
+                <input type="radio" id="choice1" name="answer{{ id }}" value="{{ choice1 }}" checked>
+                {% else %}
+                <input type="radio" id="choice1" name="answer{{ id }}" value="{{ choice1 }}">
+                {% endif %}
+                <label for="choice1">{{ choice1 }}</label><br>
+                
+                {% if oldanswer == choice2 %}
+                <input type="radio" id="choice2" name="answer{{ id }}" value="{{ choice2 }}" checked>
+                {% else %}
+                <input type="radio" id="choice2" name="answer{{ id }}" value="{{ choice2 }}">
+                {% endif %}
+                <label for="choice2">{{ choice2 }}</label><br>
+                
+                {% if oldanswer == choice3 %}
+                <input type="radio" id="choice3" name="answer{{ id }}" value="{{ choice3 }}" checked>
+                {% else %}
+                <input type="radio" id="choice3" name="answer{{ id }}" value="{{ choice3 }}">
+                {% endif %}
+                <label for="choice3">{{ choice3 }}</label><br>
+                
+                {% if oldanswer == choice4 %}
+                <input type="radio" id="choice4" name="answer{{ id }}" value="{{ choice4 }}" checked>
+                {% else %}
+                <input type="radio" id="choice4" name="answer{{ id }}" value="{{ choice4 }}">
+                {% endif %}
+                <label for="choice3">{{ choice4 }}</label><br>
+            </div>
+        {% else %}
+            <strong>Q{{ id }} {{ question }}</strong>
+            <textarea id="editor{{ id }}" name="answer{{ id }}">{{ oldanswer }}</textarea>
+            <script>
+                var editor{{ id }} = CodeMirror.fromTextArea
+				(document.getElementById('editor{{ id }}'), {
+				    mode: "clike",
+					theme: "dracula",
+					lineNumbers: true,
+					autoCloseTags: true
+                });
+				editor{{ id }}.setsize("250", "150")
+			</script>
+            <script>
+            const getSubmissionsResults = (sid, baseCompilerURL, save) => {
+                    jQuery.ajax({
+                        type: "POST",
+                        url: `${baseCompilerURL}/submissionResult.php`,
+                        data: {
+                            requestType: 'fetchResults',
+                            sid
+                        },
+                        dataType: "json",
+                        headers: {'origin':'https://ide.geeksforgeeks.org/'},
+                        success: function(data) {
+                            if (data.status === "SUCCESS") {
+                                console.log(data.cmpError)
+                                if (data.compResult == "F") {
+                                   alert(data.cmpError)
+                                } else {
+                                    alert("Compilation Success")
+                                }                                    
+                            } else if (data.status === "IN-QUEUE") {
+                                getSubmissionsResults(sid, baseCompilerURL, save)                
+                            }
+                        }
+                    })
+                }
+
+            $(document).ready(function(){                
+                $("button").unbind("click").click(function(e) {                                     
+                    if(this.id != 200) {
+                    e.preventDefault();
+                    //var editornew{{ id }} = document.querySelector('.CodeMirror').CodeMirror;
+                    //alert(editornew{{ id }}.getValue());
+                    var originalDiv = $('#editor{{ id }}');
+                    var editornew{{ id }} = originalDiv.next('.CodeMirror')[0].CodeMirror;
+                    alert(editornew{{ id }}.getValue());
+                    $.ajax({
+                    type: "POST",
+                    url: 'https://cors-anywhere.herokuapp.com/https://ide.geeksforgeeks.org/main.php',
+                    data: { 
+                    lang: "Cpp", 
+                    code: editornew{{ id }}.getValue(), 
+                    input: "", 
+                    save: 'false'
+                    },
+                    dataType: "json",  
+                  headers: {'origin':'https://ide.geeksforgeeks.org/'},
+                  error: function(error) {
+                  console.log(error);                  
+                  },
+                  asyn:'false',
+                  success: function(data){
+                      console.log(data.sid);
+                      if (data.status === "SUCCESS"){
+                      console.log(data);
+                      getSubmissionsResults(data.sid,'https://cors-anywhere.herokuapp.com/https://ide.geeksforgeeks.org','false');
+                      }
+                     //$('#sid').html(message.sid);
+                      $('#sid').html($(data.sid).find('#sid *'));
+                    }});
+                    }
+                });
+            });                
+            </script>            
+            <button id="{{ id }}" class="btn btn-secondary">Compile</button><br><br>
+        {% endif %}
+    {% endfor %}
+{% endfor %}
+  <input type="hidden" name="strId" value="{{ stringId }}">
+  <button id= "200" class="btn btn-primary">Submit</button>
+</form> 
+{% endblock %}
+
+
+            
