@@ -5,6 +5,7 @@ from tutorial.forms import StudentForm
 from django.core.serializers import serialize
 from django.http import JsonResponse
 from . import models
+from .tasks import online_test_eval
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.utils.crypto import get_random_string
@@ -276,5 +277,49 @@ def jobSettings(request):
 				remindersCount=request.POST.get('remindCount', 0))
 	config.save()
 	return HttpResponse("Settings Saved")
+
+def online(request):
+    if request.method == 'POST':
+        data = models.Person.objects.only('questions').get(stringId__exact=request.POST['strId'])
+        print(request.POST.get("answer1"))
+        if request.POST.get("answer1") is not None:            
+            data.answer1 = request.POST.get("answer1")
+            data.answer2 = request.POST.get('answer2')
+            data.answer3 = request.POST.get('answer3')
+            data.save()
+            q4 = models.OnlineTestKeys.objects.get(qid=data.question4)
+            res = zip([['4',q4.type,q4.question,q4.choice1,q4.choice2,q4.choice3,q4.choice4,data.answer4]])
+            return render(request,"onlinetest.html", {'qs': res, 'stringId': request.POST['strId']})
+        elif request.POST.get("answer4") is not None:
+            data.answer4 = request.POST.get('answer4')
+            data.save()
+            q5 = models.OnlineTestKeys.objects.get(qid=data.question5)
+            res = zip([['5',q5.type,q5.question,q5.choice1,q5.choice2,q5.choice3,q5.choice4,data.answer5]])
+            return render(request,"onlinetest.html", {'qs': res, 'stringId': request.POST['strId']})
+        elif request.POST.get("answer5") is not None:
+            data.status = "Received"
+            data.answer5 = request.POST.get('answer5')
+            data.onlinetestcomplete = 1
+            data.save()
+            return HttpResponse("Answers submitted successfuly" + data.answer1 + data.answer2 + data.answer3 + data.answer4 + data.answer5)
+        else:
+            #data.onlinetestcomplete == 1
+            return HttpResponse("Timed out")
+    else:
+        id = request.GET["id"]
+        if id == "":
+            return HttpResponse("Invalid Request")
+        try:
+            print(id)
+            data = models.Person.objects.only('questions').get(stringId__exact=id)  
+            #if data.onlinetestcomplete == 1:
+            #    return HttpResponse("<h3>Online test submitted already.<h3>")            
+            q1 = models.OnlineTestKeys.objects.get(qid=data.question1)
+            q2 = models.OnlineTestKeys.objects.get(qid=data.question2)
+            q3 = models.OnlineTestKeys.objects.get(qid=data.question3)	
+            res = zip([['1', q1.type,q1.question,q1.choice1,q1.choice2,q1.choice3,q1.choice4,data.answer1],['2',q2.type,q2.question,q2.choice1,q2.choice2,q2.choice3,q2.choice4,data.answer2],['3',q3.type,q3.question,q3.choice1,q3.choice2,q3.choice3,q3.choice4,data.answer3]])
+            return render(request,"onlinetest.html", {'qs': res, 'stringId': id})
+        except models.Person.DoesNotExist:
+            return HttpResponse("Invalid Request")
 
 # Create your views here.
