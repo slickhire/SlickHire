@@ -75,16 +75,17 @@ def Extract_Files(newFile):
 			parser = resume_parser.ResumeParser(fileName)
 			AddPerson(parser.get_extracted_data(), jobId)
 
-@background(schedule=5)
-def CallHandler():
-    print("Checking for any uploaded files")
-    uploadedFiles = os.listdir(os.path.join(settings.BASE_DIR, 'tutorial/static/upload/'))
-    for uploadedFile in uploadedFiles:
-        print(uploadedFile)
-        filename = os.path.join(settings.BASE_DIR, 'tutorial/static/upload/', uploadedFile)
-        if os.path.splitext(uploadedFile)[-1].lower() == ".zip":
-            Extract_Files(filename)
-        shutil.move(filename, os.path.join(settings.BASE_DIR, 'tutorial/static/processed/'))
+def ResumeHandler():
+	while 1:
+		print("Checking for any uploaded files")
+		uploadedFiles = os.listdir(os.path.join(settings.BASE_DIR, 'tutorial/static/upload/'))
+		for uploadedFile in uploadedFiles:
+			print(uploadedFile)
+			filename = os.path.join(settings.BASE_DIR, 'tutorial/static/upload/', uploadedFile)
+			if os.path.splitext(uploadedFile)[-1].lower() == ".zip":
+				Extract_Files(filename)
+			shutil.move(filename, os.path.join(settings.BASE_DIR, 'tutorial/static/processed/'))
+		time.sleep(5)
             
 def isReminderAllowedAtThisTime():
     now = datetime.now() 
@@ -94,40 +95,40 @@ def isReminderAllowedAtThisTime():
     else:
         return False
 
-@background
 def StartQuestionaireReminder():
-    print("Reminder Started at ", time.time())
-
-    if not isReminderAllowedAtThisTime():
-        return
-    
-    jobConfig = models.JobSettings.objects.get(companyId="1")
-    if not jobConfig:
-        return
-
-    if jobConfig.remindersCount == 0:
-        return
-
-    currentTimestamp = int(time.time())
-
-    candidates = models.Person.objects.all()
-    for candidate in candidates:
-        if candidate.status != 'Received' and currentTimestamp >= candidate.nextReminderTimestamp:
-            candQuestionsUrl = "ec2-3-17-12-192.us-east-2.compute.amazonaws.com/questions?id={}".format(candidate.stringId)
-            optout_link = 'ec2-3-17-12-192.us-east-2.compute.amazonaws.com/opt_out?id=' + candidate.stringId
-            if jobConfig.smsEnabled:
-            	sendSMS(candidate.mobile, "xyz", id)
-            if jobConfig.voiceEnabled:
-            	makeVoiceCall(candidate.mobile, "kempa")
-            if jobConfig.emailEnabled:
-            	send_email(candidate.name,"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, candidate.email)
-            print("Reminder Sent")
-            candidate.reminderscount += 1
-            if candidate.reminderscount == jobConfig.remindersCount:
-                candidate.delete()
-                jobStats = models.JobProfile.objects.get(jobId__exact=candidate.questions)
-                jobStats.discardedCount += 1
-                jobStats.save()
-            else:
-                candidate.nextReminderTimestamp = currentTimestamp + 86400
-                candidate.save()
+	while 1:
+		print("Reminder Started at ", time.time())
+		
+		if not isReminderAllowedAtThisTime():
+			return
+		
+		jobConfig = models.JobSettings.objects.get(companyId="1")
+		if not jobConfig:
+			return
+		
+		if jobConfig.remindersCount == 0:
+			return
+		
+		currentTimestamp = int(time.time())
+		
+		candidates = models.Person.objects.all()
+		for candidate in candidates:
+			if candidate.status != 'Received' and currentTimestamp >= candidate.nextReminderTimestamp:
+				candQuestionsUrl = "ec2-3-17-12-192.us-east-2.compute.amazonaws.com/questions?id={}".format(candidate.stringId)
+				optout_link = 'ec2-3-17-12-192.us-east-2.compute.amazonaws.com/opt_out?id=' + candidate.stringId
+				if jobConfig.smsEnabled:
+					sendSMS(candidate.mobile, "xyz", id)
+				if jobConfig.voiceEnabled:
+					makeVoiceCall(candidate.mobile, "kempa")
+				if jobConfig.emailEnabled:
+					send_email(candidate.name,"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, candidate.email)
+				candidate.reminderscount += 1
+				if candidate.reminderscount == jobConfig.remindersCount:
+					candidate.delete()
+					jobStats = models.JobProfile.objects.get(jobId__exact=candidate.questions)
+					jobStats.discardedCount += 1
+					jobStats.save()
+				else:
+					candidate.nextReminderTimestamp = currentTimestamp + 86400
+					candidate.save()
+		time.sleep(10)

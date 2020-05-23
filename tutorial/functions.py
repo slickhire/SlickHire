@@ -5,8 +5,10 @@ from . import models
 from django.core.mail import send_mail
 from django.conf import settings
 
-#from .integrator import CallHandler 
-#from .integrator import StartQuestionaireReminder 
+from multiprocessing import Process
+
+from .integrator import ResumeHandler 
+from .integrator import StartQuestionaireReminder 
 
 def email():
     subject = 'Thank you for registering to our site'
@@ -21,3 +23,10 @@ def handle_uploaded_file(f, jobId):
     with open('tutorial/static/upload/'+ jobId + '#' + dt_string + '_' + f.name, 'wb+') as destination:  
         for chunk in f.chunks():  
             destination.write(chunk) 
+
+def StartProcesses():
+	q = Process(target=StartQuestionaireReminder)
+	q.start()
+
+	p = Process(target=ResumeHandler)
+	p.start()

@@ -16,8 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from . import views
-from .integrator import CallHandler
-from .integrator import StartQuestionaireReminder
+from .functions import StartProcesses
 urlpatterns = [
     path('index/', views.index),
     path('index/data/', views.data),
@@ -39,5 +38,4 @@ urlpatterns = [
     path('settings/job', views.jobSettings)
 ]
 
-CallHandler()
-StartQuestionaireReminder(repeat=5, repeat_until=None)
+StartProcesses()
