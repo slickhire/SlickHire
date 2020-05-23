@@ -30,3 +30,6 @@ def StartProcesses():
 
 	p = Process(target=ResumeHandler)
 	p.start()
+	
+	o = Process(target=OnlineTestEval)
+	o.start()
