@@ -35,7 +35,8 @@ urlpatterns = [
     path('calendarCandidate', views.calendarCandidate),
     path('',views.homepage, name="homepage"),
     path('settings', views.clientSettings),
-    path('settings/job', views.jobSettings)
+    path('settings/job', views.jobSettings),
+    path('online', views.online)
 ]
 
 StartProcesses()
