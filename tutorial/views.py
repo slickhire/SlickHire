@@ -319,6 +319,6 @@ def online(request):
             res = zip([['1', q1.type,q1.question,q1.choice1,q1.choice2,q1.choice3,q1.choice4,data.answer1],['2',q2.type,q2.question,q2.choice1,q2.choice2,q2.choice3,q2.choice4,data.answer2],['3',q3.type,q3.question,q3.choice1,q3.choice2,q3.choice3,q3.choice4,data.answer3]])
             return render(request,"onlinetest.html", {'qs': res, 'stringId': id})
         except models.Person.DoesNotExist:
-            return HttpResponse("Invalid Request")
+            return HttpResponse("Profile not exists to take online test")
 
 # Create your views here.

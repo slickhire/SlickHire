@@ -61,6 +61,12 @@ def AddPerson(rparser, jobId):
                        questions_link, \
                        optout_link, \
                        p.email)
+	print("Ganga",p.stringId)
+	p.question1 = 1
+	p.question2 = 2
+	p.question3 = 3
+	p.question4 = 4
+	p.question5 = 5
 	p.save()
 	jobProfile.candidatesCount += 1
 	jobProfile.save()
@@ -77,67 +83,70 @@ def Extract_Files(newFile):
 			AddPerson(parser.get_extracted_data(), jobId)
 			
 def OnlineTestEval():
-    onlineeval = models.Person.objects.filter(onlinetesteval=0)
-    score = 0
-    for eval in onlineeval:
-        print("processing", eval.name)
-        q1 = models.OnlineTestKeys.objects.get(qid=eval.question1)
-        q2 = models.OnlineTestKeys.objects.get(qid=eval.question2)
-        q3 = models.OnlineTestKeys.objects.get(qid=eval.question3)
-        q4 = models.OnlineTestKeys.objects.get(qid=eval.question4)
-        q5 = models.OnlineTestKeys.objects.get(qid=eval.question5)
-        data = ([[q1, eval.answer1],[q2, eval.answer2],[q3, eval.answer3],[q4, eval.answer4],[q5, eval.answer5]])
-        try:
-            for ques, ans in data:
-                if ques.type:
-                    if ques.answer == ans:
-                        score += 10
-                else:
-                    tests = [ques.test1, ques.test2, ques.test3, ques.test4, ques.test5]
-                    for test in tests:
-                        url = 'https://cors-anywhere.herokuapp.com/https://ide.geeksforgeeks.org/main.php'
-                        data = {'lang': "Cpp", 'code': ans, 'input': test.split(';', 1)[0], 'save': 'false'}
-                        headers= {'origin':'https://ide.geeksforgeeks.org/'}
-                        response = requests.post(url, data , headers=headers)
-                        print(response.status_code)
-                        print(response.text)
-                        jsonRes = response.json()
-                        print(jsonRes['sid'])
-                        sid = jsonRes['sid']
-                        # After 10 retries , we will declare that IDE has some issues and retry later.
-                        retry = 0
-                        while True:
-                            data = {'requestType': "fetchResults", 'sid' : sid } 
-                            response = requests.post('https://cors-anywhere.herokuapp.com/https://ide.geeksforgeeks.org/submissionResult.php', data , headers=headers)
-                            print(response.status_code)
-                            print(response.text)
-                            outputres = response.json()
-                            retry += 1
-                            if  outputres['status'] == 'SUCCESS' or retry == 10:        
-                                break
-                        # Have an error counter to know that ide is misbehaving
-                        if retry == 100:
-                            break
-                        if outputres['compResult'] == 'S' and test.split(';', 1)[1] == outputres['output']:
-                            score += 10
-                        # Additonally have a stat per Person to know how many programs resuled in compilation errors
-                        if outputres['compResult'] != 'S':
-                            eval.onlinetestcompileerrors += 1                        
-                        print(test.split(';', 1)[0])
-                        print(test.split(';', 1)[1])
-                        print(outputres['output'])
-            if retry == 100:
-                break
-            eval.onlinetestscore = score
-            eval.onlinetesteval = 1
-            eval.save()
-            break
-        except KeyError:
-            # Error counter to know that response from IDE is not proper.
-            eval.onlinetestscore = 0
-            eval.onlinetesteval = 0
-            eval.save()
-    time.sleep(5)
+	while 1:
+		print("Online Processing")
+		if  models.Person.objects.filter(onlinetesteval=0).exists():
+			onlineeval = models.Person.objects.filter(onlinetesteval=0)
+			score = 0
+			for eval in onlineeval:
+				print("processing", eval.name)
+				q1 = models.OnlineTestKeys.objects.get(qid=eval.question1)
+				q2 = models.OnlineTestKeys.objects.get(qid=eval.question2)
+				q3 = models.OnlineTestKeys.objects.get(qid=eval.question3)
+				q4 = models.OnlineTestKeys.objects.get(qid=eval.question4)
+				q5 = models.OnlineTestKeys.objects.get(qid=eval.question5)
+				data = ([[q1, eval.answer1],[q2, eval.answer2],[q3, eval.answer3],[q4, eval.answer4],[q5, eval.answer5]])
+				try:
+					for ques, ans in data:
+						if ques.type:
+							if ques.answer == ans:
+								score += 10
+						else:
+							tests = [ques.test1, ques.test2, ques.test3, ques.test4, ques.test5]
+							for test in tests:
+								url = 'https://cors-anywhere.herokuapp.com/https://ide.geeksforgeeks.org/main.php'
+								data = {'lang': "Cpp", 'code': ans, 'input': test.split(';', 1)[0], 'save': 'false'}
+								headers= {'origin':'https://ide.geeksforgeeks.org/'}
+								response = requests.post(url, data , headers=headers)
+								print(response.status_code)
+								print(response.text)
+								jsonRes = response.json()
+								print(jsonRes['sid'])
+								sid = jsonRes['sid']
+								# After 10 retries , we will declare that IDE has some issues and retry later.
+								retry = 0
+								while True:
+									data = {'requestType': "fetchResults", 'sid' : sid } 
+									response = requests.post('https://cors-anywhere.herokuapp.com/https://ide.geeksforgeeks.org/submissionResult.php', data , headers=headers)
+									print(response.status_code)
+									print(response.text)
+									outputres = response.json()
+									retry += 1
+									if  outputres['status'] == 'SUCCESS' or retry == 100:        
+										break
+								# Have an error counter to know that ide is misbehaving
+								if retry == 100:
+									break
+								if outputres['compResult'] == 'S' and test.split(';', 1)[1] == outputres['output']:
+									score += 10
+								# Additonally have a stat per Person to know how many programs resuled in compilation errors
+								if outputres['compResult'] != 'S':
+									eval.onlinetestcompileerrors += 1                        
+								print(test.split(';', 1)[0])
+								print(test.split(';', 1)[1])
+								print(outputres['output'])
+					if retry == 100:
+					    break
+					eval.onlinetestscore = score
+					eval.onlinetesteval = 1
+					eval.save()
+					break
+				except KeyError:
+					# Error counter to know that response from IDE is not proper.
+					eval.onlinetestscore = 0
+					eval.onlinetesteval = 0
+					eval.save()
+		time.sleep(8)
 		    
 def ResumeHandler():
 	while 1:
