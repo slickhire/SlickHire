@@ -24,15 +24,15 @@ def handle_uploaded_file(f, jobId):
 	with open('tutorial/static/upload/'+ jobId + '#' + dt_string + '_' + f.name, 'wb+') as destination:  
 		for chunk in f.chunks():  
 			destination.write(chunk) 
-	r = models.OnlineTestKeys(qid=1, type=1, question="Who invented computers?", choice1="Anthony", choice2="Rama", choice3="Kempa", choice4="Charles", answer="Charles")
+	r = models.OnlineTestKeys(qid=1, type=1, category= 1, question="Who invented computers?", choice1="Anthony", choice2="Rama", choice3="Kempa", choice4="Charles", answer="Charles")
 	r.save()
-	r = models.OnlineTestKeys(qid=2, type=1, question="Which of the below are binary operators?", choice1="&", choice2="|", choice3="||", choice4="~", answer="||")
+	r = models.OnlineTestKeys(qid=2, type=1, category=1, question="Which of the below are binary operators?", choice1="&", choice2="|", choice3="||", choice4="~", answer="||")
 	r.save()
-	r = models.OnlineTestKeys(qid=3, type=1, question="Which of these protocols are layer4 protocols?", choice1="TCP", choice2="ARP", choice3="IP", choice4="ICMP", answer="TCP")
+	r = models.OnlineTestKeys(qid=3, type=1, category=1, question="Which of these protocols are layer4 protocols?", choice1="TCP", choice2="ARP", choice3="IP", choice4="ICMP", answer="TCP")
 	r.save()
-	r = models.OnlineTestKeys(qid=4, type=0, question="Write a sample program to add two numbers?", test1="2 3;5", test2="-1 -5;-6", test3="-1 5;4", test4="200 900;1100", test5="0 -1;-1")
+	r = models.OnlineTestKeys(qid=4, type=0, category=1, question="Write a sample program to add two numbers?", test1="2 3;5", test2="-1 -5;-6", test3="-1 5;4", test4="200 900;1100", test5="0 -1;-1")
 	r.save()
-	r = models.OnlineTestKeys(qid=5, type=0, question="Write a sample program to find out whether the year is a leap year?", test1="2000;Yes", test2="2020;Yes", test3="4;Yes", test4="2025;No", test5="1998;No")
+	r = models.OnlineTestKeys(qid=5, type=0, category=1, question="Write a sample program to find out whether the year is a leap year?", test1="2000;Yes", test2="2020;Yes", test3="4;Yes", test4="2025;No", test5="1998;No")
 	r.save()
 	print("Ganga All questions created")
 

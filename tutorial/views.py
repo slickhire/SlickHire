@@ -7,10 +7,11 @@ from django.http import JsonResponse
 from . import models
 from django.views.decorators.csrf import csrf_exempt
 import json
+import random
 from django.utils.crypto import get_random_string
 from django.core.mail import send_mail
 from django.conf import settings
-from time import time
+import time
 
 def jprofile(request):
    return render(request, "jprofile.html")
@@ -130,15 +131,53 @@ def getLink(request):
 
 @csrf_exempt
 def saveJob(request):
-    print("save")
-    salary = request.POST['salary'].split('-')
-    exp = request.POST['exp'].split('-')
-    notice = request.POST['notice'].split('-')
+	print("save")
+	salary = []
+	if '-' in request.POST['salary']:
+		salary = request.POST['salary'].split('-')
+	else:
+		salary.append(request.POST['salary'])
+		salary.append(request.POST['salary'])
 
-    job = models.JobProfile(jobId=request.POST['jobid'], designation=request.POST['designation'], experience = request.POST['exp'], salary = request.POST['salary'], notice = request.POST['notice'], skills = request.POST['skills'], salary1 = salary[0], salary2 = salary[1], exp1 = exp[0], exp2 = exp[1], notice1 = notice[0], notice2 = notice[1], emails=request.POST['emails'])
-    job.save()
+	exp = []
+	if '-' in request.POST['exp']:
+		exp = request.POST['exp'].split('-')
+	else:
+		exp.append(request.POST['exp'])
+		exp.append(request.POST['exp'])
 
-    return HttpResponse("success")
+	notice = []
+	if '-' in request.POST['notice']:
+		notice = request.POST['notice'].split('-')
+	else:
+		notice.append(request.POST['notice'])
+		notice.append(request.POST['notice'])
+
+	job = models.JobProfile(jobId=request.POST['jobid'], designation=request.POST['designation'], experience = request.POST['exp'], salary = request.POST['salary'], notice = request.POST['notice'], skills = request.POST['skills'], salary1 = salary[0], salary2 = salary[1], exp1 = exp[0], exp2 = exp[1], notice1 = notice[0], notice2 = notice[1], emails=request.POST['emails'], onlineProgExamCategory=request.POST['onlineProgExamCategory'])
+	onlineques = models.OnlineTestKeys.objects.filter(category=request.POST['onlineProgExamCategory'])
+	random_index = []
+	questions = []
+	random_index = random.sample(range(1, models.OnlineTestKeys.objects.filter(category=request.POST['onlineProgExamCategory']).count()+1), 5)
+	looper = 1
+	print("Ganga", models.OnlineTestKeys.objects.filter(category=request.POST['onlineProgExamCategory']).count(),len(onlineques))
+	for option in onlineques:
+		try:
+			dummy = random_index.index(looper)
+			questions.append(option)
+		except ValueError:
+			continue
+		if (looper == models.OnlineTestKeys.objects.filter(category=request.POST['onlineProgExamCategory']).count()):
+			break
+		looper = looper + 1
+	print("Ganga qurestion length",len(questions),len(random_index),looper)
+	job.question1 = questions[0].qid 
+	job.question2 = questions[1].qid
+	job.question3 = questions[2].qid
+	job.question4 = questions[3].qid
+	job.question5 = questions[4].qid
+	print("Ganga Qid",questions[0].qid,questions[1].qid,questions[2].qid,questions[3].qid,questions[4].qid)
+	job.save()
+	return HttpResponse("success")
 
 @csrf_exempt
 def upload(request):
@@ -194,7 +233,7 @@ def questions(request):
         if int(row.exp1) <= int(data.experience) <= int(row.exp2):
             score += weightPerQuestion 
         else:
-            score += GetScore(int(weightPerQuestion), q.expected1, q.expected2, data.experience)
+            score += GetScore(int(weightPerQuestion), row.exp1, row.exp2, data.experience)
         
         if int(row.salary1) <= int(data.expectedCtc) <= int(row.salary2):
             score += weightPerQuestion
@@ -227,13 +266,18 @@ def questions(request):
             print(id)
             data = models.Person.objects.only('questions').get(stringId__exact=id)
         except models.Person.DoesNotExist:
-            return HttpResponse("Invalid Request")
+            return HttpResponse("Candidate Not Found")
 
-        row = models.JobProfile.objects.only('skills').get(jobId__exact=data.questions)
+        row = models.JobProfile.objects.get(jobId__exact=data.questions)
         skillList = []
         for x in row.skills.split(','):
             skillList.append(x)
 
+        data.question1 = row.question1
+        data.question2 = row.question2
+        data.question3 = row.question3
+        data.question4 = row.question4
+        data.question5 = row.question5
         data.nextReminderTimestamp = int(time.time()) + 86400
         data.save()
 
@@ -244,10 +288,10 @@ def opt_out(request):
         print('Receieved POST opt-out request for: ', request.POST["strId"])
         candidate = models.Person.objects.only('questions').filter(stringId__exact=request.POST['strId'])
         if candidate:
-            candidate.delete()
             jobStats = models.JobProfile.objects.get(jobId__exact=candidate.questions)
             jobStats.optedOutCount += 1
             jobStats.save()
+            candidate.delete()
             return HttpResponse("You have successfuly opted-out")
         else:
             return HttpResponse("Invalid Request")
@@ -299,10 +343,11 @@ def online(request):
             data.status = "Received"
             data.answer5 = request.POST.get('answer5')
             data.onlinetestcomplete = 1
+            data.onlinetesteval = 0
             data.save()
             return HttpResponse("Answers submitted successfuly" + data.answer1 + data.answer2 + data.answer3 + data.answer4 + data.answer5)
         else:
-            #data.onlinetestcomplete == 1
+            data.onlinetestcomplete == 1
             return HttpResponse("Timed out")
     else:
         id = request.GET["id"]
@@ -311,8 +356,8 @@ def online(request):
         try:
             print(id)
             data = models.Person.objects.only('questions').get(stringId__exact=id)  
-            #if data.onlinetestcomplete == 1:
-            #    return HttpResponse("<h3>Online test submitted already.<h3>")            
+            if data.onlinetestcomplete == 1:
+                return HttpResponse("<h3>Online test submitted already.<h3>")            
             q1 = models.OnlineTestKeys.objects.get(qid=data.question1)
             q2 = models.OnlineTestKeys.objects.get(qid=data.question2)
             q3 = models.OnlineTestKeys.objects.get(qid=data.question3)	

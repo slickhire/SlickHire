@@ -17,6 +17,7 @@
                 <th>Notice Period</th>
                 <th>Skills</th>
 		<th>Emails</th>
+		<th>Online Test Category</th>
 		<th>Cal</th>
 		<th>Edi</th>
 		<th>Del</th>
@@ -89,6 +90,11 @@
   <input type="text" class="form-control input-sm" id="emails">
   <p></p>
          </div>
+<div class="form-group form-inline">
+  <label>Online Test Category: &nbsp</label>
+  <input type="text" class="form-control input-sm" id="onlineTestCategory">
+  <p></p>
+         </div>
 
       </div>
       <div class="modal-footer">
@@ -112,6 +118,7 @@ $.fn.dataTable.ext.buttons.alert = {
             $('#notice').val("");
             $('#skills').val("");
             $('#emails').val("");
+            $('#onlineTestCategory').val("");
 
 $('#exampleModal').modal('show');
     }};
@@ -133,6 +140,7 @@ $('#add').click(function(){
             $('#notice').val("");
             $('#skills').val("");
 	    $('#emails').val("");
+	    $('#onlineTestCategory').val("");
 
 $('#exampleModal').modal('show');
 });
@@ -147,6 +155,7 @@ $('#save').click(function(){
        notice: $('#notice').val(),
        skills: $('#skills').val(),
        emails: $('#emails').val(),
+       onlineProgExamCategory: $('#onlineTestCategory').val(),
     },
     function(data,status){
         $.alert({
@@ -213,6 +222,7 @@ $('#example tbody').on( 'click', 'button', function () {
             $('#notice').val(data[4]);
             $('#skills').val(data[5]);
 	    $('#emails').val(data[6]);
+	    $('#onlineTestCategory').val(data[6]);
         $('#exampleModal').modal('show');
 
 	}

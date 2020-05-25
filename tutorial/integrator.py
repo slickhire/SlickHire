@@ -28,6 +28,7 @@ from django.template.loader import render_to_string, get_template
 from django.template import Context
 
 def AddPerson(rparser, jobId):
+	models.Person.objects.filter(mobile__exact = "9008728152").delete()
 	print("latest",rparser['name'],rparser['email'],rparser['mobile_number'], rparser['skills'], jobId)
 	jobProfile = models.JobProfile.objects.get(jobId__exact=jobId)
 	p = models.Person(name=rparser['name'],  \
@@ -62,11 +63,11 @@ def AddPerson(rparser, jobId):
                        optout_link, \
                        p.email)
 	print("Ganga",p.stringId)
-	p.question1 = 1
-	p.question2 = 2
-	p.question3 = 3
-	p.question4 = 4
-	p.question5 = 5
+	#p.question1 = 1
+	#p.question2 = 2
+	#p.question3 = 3
+	#p.question4 = 4
+	#p.question5 = 5
 	p.save()
 	jobProfile.candidatesCount += 1
 	jobProfile.save()
@@ -90,11 +91,14 @@ def OnlineTestEval():
 			score = 0
 			for eval in onlineeval:
 				print("processing", eval.name)
-				q1 = models.OnlineTestKeys.objects.get(qid=eval.question1)
-				q2 = models.OnlineTestKeys.objects.get(qid=eval.question2)
-				q3 = models.OnlineTestKeys.objects.get(qid=eval.question3)
-				q4 = models.OnlineTestKeys.objects.get(qid=eval.question4)
-				q5 = models.OnlineTestKeys.objects.get(qid=eval.question5)
+				try:
+					q1 = models.OnlineTestKeys.objects.get(qid=eval.question1)
+					q2 = models.OnlineTestKeys.objects.get(qid=eval.question2)
+					q3 = models.OnlineTestKeys.objects.get(qid=eval.question3)
+					q4 = models.OnlineTestKeys.objects.get(qid=eval.question4)
+					q5 = models.OnlineTestKeys.objects.get(qid=eval.question5)
+				except Content.DoesNotExist:
+					break	 
 				data = ([[q1, eval.answer1],[q2, eval.answer2],[q3, eval.answer3],[q4, eval.answer4],[q5, eval.answer5]])
 				try:
 					for ques, ans in data:

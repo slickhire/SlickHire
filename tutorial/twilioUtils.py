@@ -54,7 +54,7 @@ def send_email(candidate_name,
                     'location': location,
                     'com_link': com_link,
                     'desc_link': desc_link,
-                    'input_link': "Hello",
+                    'input_link': input_link,
                     'optout_link': optout_link
                   }),
     			  settings.EMAIL_HOST_USER,

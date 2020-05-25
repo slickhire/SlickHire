@@ -14,11 +14,13 @@ class Person(models.Model):
     status = models.CharField(max_length=30)
     onlinetestscore = models.IntegerField(default=0)
     experience = models.CharField(max_length=30)
+    expectedCtc = models.CharField(max_length=30, default="")
+    notice = models.CharField(max_length=30, default="")
     stringId = models.CharField(max_length=30, db_index=True)
     questions = models.CharField(max_length=30)
     reminderscount = models.IntegerField(default=0)
     nextReminderTimestamp = models.IntegerField(default=0)
-    onlinetesteval = models.IntegerField(default=0)
+    onlinetesteval = models.IntegerField(default=-1)
     onlinetestcompileerrors = models.IntegerField(default=0)
     onlinetestcomplete = models.IntegerField(default=0)
     question1 = models.IntegerField(default=0)
@@ -31,15 +33,6 @@ class Person(models.Model):
     answer3 = models.TextField(default="0")
     answer4 = models.TextField(default="0")
     answer5 = models.TextField(default="0")
-
-# Create your models here.
-class Questions(models.Model):
-    key = models.CharField(max_length=30)
-    q = models.CharField(max_length=30)
-    options = models.CharField(max_length=30)
-    tagId = models.CharField(max_length=30)
-    expected1 = models.CharField(max_length=30)
-    expected2 = models.CharField(max_length=30)
 
 class JobProfile(models.Model):
     jobId = models.CharField(max_length=100, primary_key=True)
@@ -65,8 +58,14 @@ class JobProfile(models.Model):
     interviewedCount = models.IntegerField(default=0)
     rejectedCount = models.IntegerField(default=0)
     onHoldCount = models.IntegerField(default=0)
+    onlineProgExamCategory = models.IntegerField(default=1)
     onlineProgExamPendingCount = models.IntegerField(default=0)
     onlineProgExamDoneCount = models.IntegerField(default=0)
+    question1 = models.IntegerField(default=0)
+    question2 = models.IntegerField(default=0)
+    question3 = models.IntegerField(default=0)
+    question4 = models.IntegerField(default=0)
+    question5 = models.IntegerField(default=0)
 
 class JobSettings(models.Model):
 	companyId = models.CharField(max_length=30, primary_key=True)
@@ -89,6 +88,7 @@ class InternalLink(models.Model):
 class OnlineTestKeys(models.Model):
     qid = models.IntegerField(primary_key=True)
     type = models.IntegerField()
+    category = models.IntegerField(default=0)
     question = models.TextField()
     choice1 = models.TextField()
     choice2 = models.TextField()

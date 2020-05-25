@@ -171,6 +171,10 @@ CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
     'http://localhost:8000',
     'http://localhost:8080',
+    'http://ec2-3-17-12-192.us-east-2.compute.amazonaws.com:3000',
+    'http://ec2-3-17-12-192.us-east-2.compute.amazonaws.com',
+    'http://ec2-3-17-12-192.us-east-2.compute.amazonaws.com:8000',
+    'http://ec2-3-17-12-192.us-east-2.compute.amazonaws.com:8080',
 ]
 
 CSRF_COOKIE_NAME = "csrftoken"
@@ -190,9 +194,4 @@ REST_SESSION_LOGIN = False
 ACCOUNT_AUTHENTICATION_METHOD = 'username'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
-ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
-ACCOUNT_USERNAME_REQUIRED = True
-LOGOUT_ON_PASSWORD_CHANGE = False
-
-LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
