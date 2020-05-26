@@ -286,9 +286,10 @@ def questions(request):
 def opt_out(request):
     if request.method == 'POST': 
         print('Receieved POST opt-out request for: ', request.POST["strId"])
-        candidate = models.Person.objects.only('questions').filter(stringId__exact=request.POST['strId'])
+        candidate = models.Person.objects.only('questions').get(stringId__exact=request.POST['strId'])
         if candidate:
-            jobStats = models.JobProfile.objects.get(jobId__exact=candidate.questions)
+            jobId = candidate.questions
+            jobStats = models.JobProfile.objects.get(jobId__exact=jobId)
             jobStats.optedOutCount += 1
             jobStats.save()
             candidate.delete()
