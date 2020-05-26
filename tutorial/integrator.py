@@ -81,6 +81,7 @@ def Extract_Files(newFile):
 			zipObj.extract(fileName)
 			print('Processing the new file',fileName)
 			parser = resume_parser.ResumeParser(fileName)
+			print("Resume Parsing Done")
 			AddPerson(parser.get_extracted_data(), jobId)
 			
 def OnlineTestEval():
@@ -108,7 +109,7 @@ def OnlineTestEval():
 						else:
 							tests = [ques.test1, ques.test2, ques.test3, ques.test4, ques.test5]
 							for test in tests:
-								url = 'https://cors-anywhere.herokuapp.com/https://ide.geeksforgeeks.org/main.php'
+								url = 'https://ide.geeksforgeeks.org/main.php'
 								data = {'lang': "Cpp", 'code': ans, 'input': test.split(';', 1)[0], 'save': 'false'}
 								headers= {'origin':'https://ide.geeksforgeeks.org/'}
 								response = requests.post(url, data , headers=headers)
@@ -121,7 +122,7 @@ def OnlineTestEval():
 								retry = 0
 								while True:
 									data = {'requestType': "fetchResults", 'sid' : sid } 
-									response = requests.post('https://cors-anywhere.herokuapp.com/https://ide.geeksforgeeks.org/submissionResult.php', data , headers=headers)
+									response = requests.post('https://ide.geeksforgeeks.org/submissionResult.php', data , headers=headers)
 									print(response.status_code)
 									print(response.text)
 									outputres = response.json()

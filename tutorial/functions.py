@@ -34,6 +34,8 @@ def handle_uploaded_file(f, jobId):
 	r.save()
 	r = models.OnlineTestKeys(qid=5, type=0, category=1, question="Write a sample program to find out whether the year is a leap year?", test1="2000;Yes", test2="2020;Yes", test3="4;Yes", test4="2025;No", test5="1998;No")
 	r.save()
+	r = models.OnlineTestKeys(qid=6, type=0, category=1, question="Write a sample program to find out whether the number is a prime number?", test1="17;Yes", test2="19;Yes", test3="199;Yes", test4="57;No", test5="133;No")
+	r.save()
 	print("Ganga All questions created")
 
 def StartProcesses():

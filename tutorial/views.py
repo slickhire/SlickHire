@@ -325,9 +325,19 @@ def online(request):
     if request.method == 'POST':
         data = models.Person.objects.only('questions').get(stringId__exact=request.POST['strId'])
         print(request.POST.get("answer1"))
-        if request.POST.get("answer1") is not None:            
+        if request.POST.get("answer1") is not None:
             data.answer1 = request.POST.get("answer1")
-            data.answer2 = request.POST.get('answer2')
+            data.save()
+            q2 = models.OnlineTestKeys.objects.get(qid=data.question2)
+            res = zip([['2',q2.type,q2.question,q2.choice1,q2.choice2,q2.choice3,q2.choice4,data.answer2]])
+            return render(request,"onlinetest.html", {'qs': res, 'stringId': request.POST['strId']})
+        elif request.POST.get("answer2") is not None:
+            data.answer2 = request.POST.get("answer2")
+            data.save()
+            q3 = models.OnlineTestKeys.objects.get(qid=data.question3)
+            res = zip([['3',q3.type,q3.question,q3.choice1,q3.choice2,q3.choice3,q3.choice4,data.answer3]])
+            return render(request,"onlinetest.html", {'qs': res, 'stringId': request.POST['strId']})
+        elif request.POST.get("answer3") is not None:
             data.answer3 = request.POST.get('answer3')
             data.save()
             q4 = models.OnlineTestKeys.objects.get(qid=data.question4)
@@ -359,9 +369,7 @@ def online(request):
             if data.onlinetestcomplete == 1:
                 return HttpResponse("<h3>Online test submitted already.<h3>")            
             q1 = models.OnlineTestKeys.objects.get(qid=data.question1)
-            q2 = models.OnlineTestKeys.objects.get(qid=data.question2)
-            q3 = models.OnlineTestKeys.objects.get(qid=data.question3)	
-            res = zip([['1', q1.type,q1.question,q1.choice1,q1.choice2,q1.choice3,q1.choice4,data.answer1],['2',q2.type,q2.question,q2.choice1,q2.choice2,q2.choice3,q2.choice4,data.answer2],['3',q3.type,q3.question,q3.choice1,q3.choice2,q3.choice3,q3.choice4,data.answer3]])
+            res = zip([['1', q1.type,q1.question,q1.choice1,q1.choice2,q1.choice3,q1.choice4,data.answer1]])
             return render(request,"onlinetest.html", {'qs': res, 'stringId': id})
         except models.Person.DoesNotExist:
             return HttpResponse("Profile not exists to take online test")
