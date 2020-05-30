@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block main %}
+ <form  method="post" class="post-form">
+{% csrf_token %}
+    {% if type == "none" %}
+    <h2>Welcome to the online questions portal</h2><br>
+    <strong>Type of Question</strong>
+    <div class="form-group">        
+        <input type="radio" id="type1" name="type" value="program">
+        <label for="type1">program</label><br>        
+        <input type="radio" id="type2" name="type" value="multiple-choice">        
+        <label for="type2">multiple-choice</label><br>       
+    </div>
+    {% endif %}
+    {% if type == "program" %}
+    <h2>Add Program Question</h2><br>
+    <div class="form-group"> 
+        <strong>Program Details (Make sure you state the question in clear words, with clear expectation on inputs and outputs.</strong><br>   
+        <textarea id="question" name="question"></textarea><br>
+        <strong>Add testcase for evaluation</strong><br>   
+        <button id="Add">Click to add testcase</button>        
+    <div id="textboxDiv1"></div>
+    <script>  
+        $(document).ready(function() {  
+            $("#Add").on("click", function(e) { 
+                e.preventDefault();            
+                $("#textboxDiv1").append("<div><br><input type='text' name='input'/>   <input type='text' name='output'/><br></div>");
+            });             
+        });  
+    </script>
+    <br><strong>Complexity of question</strong>    
+    <div class="form-group">        
+        <input type="radio" id="basic" name="category" value="basic">
+        <label for="type1">basic</label><br>        
+        <input type="radio" id="medium" name="category" value="medium">        
+        <label for="type2">medium</label><br>
+        <input type="radio" id="advanced" name="category" value="advanced">        
+        <label for="type2">advanced</label><br>        
+    </div>    
+    </div>
+    {% endif %}
+    {% if type == "multiple-choice" %}
+    <h2>Add Multiple-Choice Question</h2><br>
+    <div class="form-group"> 
+        <strong>Enter Multiple-choice question detail</strong><br>   
+        <textarea id="question-choice" name="question-choice"></textarea><br>
+        <br><strong>Add choices (maximum 4 choices)</strong><br>   
+        <button id="AddChoice">Add</button>        
+    <div id="textboxDiv1"></div>
+    <script>  
+        $(document).ready(function() {  
+            $("#AddChoice").on("click", function(e) { 
+                e.preventDefault();            
+                $("#textboxDiv1").append("<div><br><input type='text' name='choices'/><br></div>");
+            });             
+        });  
+    </script>
+    <br><strong>Answer for evaluation</strong>
+    <div><input type='text' name='answer'/><br></div>
+    <br><strong>Complexity of question</strong>    
+    <div class="form-group">        
+        <input type="radio" id="basic" name="category" value="basic">
+        <label for="type1">basic</label><br>        
+        <input type="radio" id="medium" name="category" value="medium">        
+        <label for="type2">medium</label><br>
+        <input type="radio" id="advanced" name="category" value="advanced">        
+        <label for="type2">advanced</label><br>        
+    </div>    
+    </div>
+    {% endif %}
+  <input type="hidden" name="strId" value="{{ stringId }}">
+  <button type="submit" class="btn btn-primary">Submit</button>    
+</form> 
+{% endblock %}

@@ -88,7 +88,7 @@ class InternalLink(models.Model):
 class OnlineTestKeys(models.Model):
     qid = models.IntegerField(primary_key=True)
     type = models.IntegerField()
-    category = models.IntegerField(default=0)
+    category = models.TextField()
     question = models.TextField()
     choice1 = models.TextField()
     choice2 = models.TextField()

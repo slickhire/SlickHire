@@ -375,4 +375,62 @@ def online(request):
         except models.Person.DoesNotExist:
             return HttpResponse("Profile not exists to take online test")
 
+def add_questions(request):
+    if request.method == 'POST':
+        for key, values in request.POST.lists():
+            print(key, values)
+        if request.POST.get("type") == "program":
+            return render(request,"setOnline.html", {'type': "program"})  
+        if request.POST.get("type") == "multiple-choice":   
+            return render(request,"setOnline.html", {'type': "multiple-choice"})
+        if request.POST.get("question-choice") is not None:            
+            if request.POST.getlist("choices") is None:
+               return HttpResponse("Choices MUST be submitted")
+            if len(request.POST.getlist("choices")) != 4:
+               return HttpResponse("Maximum 4 choices MUST be submitted")
+            if request.POST.get("answer") is None:
+               return HttpResponse("Answer is mandatory for evaluation")
+            if request.POST.get("answer") not in set(request.POST.getlist("choices")) :
+               return HttpResponse("Answer MUST be one of the option provided")
+            if request.POST.get("category") is None:
+               return HttpResponse("Category is mandatory")
+            choice1 = request.POST.getlist("choices")[0]
+            choice2 = request.POST.getlist("choices")[1]
+            choice3 = request.POST.getlist("choices")[2]
+            choice4 = request.POST.getlist("choices")[3]
+            latest = models.OnlineTestKeys.objects.latest('qid')
+            r = models.OnlineTestKeys(qid=latest.qid+1, type=1, question=request.POST.get("question-choice"), choice1=choice1, choice2=choice2, choice3=choice3, choice4=choice4, answer=request.POST.get("answer"), category = request.POST.get("category"))
+            r.save()
+        if request.POST.get("question") is not None:
+            if request.POST.getlist("input") is None:
+                return HttpResponse("Testcases(input) are mandatory")
+            if request.POST.getlist("output") is None:
+                return HttpResponse("Testcases(output) are mandatory")
+            inputs = request.POST.getlist("input")
+            outputs = request.POST.getlist("output")            
+            if request.POST.get("category") is None:
+               return HttpResponse("Category is mandatory")
+            test1 = inputs[0] + ';' + outputs[0]
+            test2 = 'null'
+            test3 = 'null'
+            test4 = 'null'
+            test5 = 'null'
+            try:
+                test2 = inputs[1] + ';' + outputs[1]
+                test3 = inputs[2] + ';' + outputs[2]
+                test4 = inputs[3] + ';' + outputs[3]
+                test5 = inputs[4] + ';' + outputs[4]
+            except IndexError:
+                print("Handle the exception")                
+               
+            latest = models.OnlineTestKeys.objects.latest('qid')            
+            r = models.OnlineTestKeys(qid=latest.qid+1, type=0, question=request.POST.get("question"), category = request.POST.get("category"), test1=test1, test2=test2, test3=test3, test4=test4, test5=test5)
+            r.save()                   
+        return HttpResponse("Data submitted successfuly" + request.POST['strId'])
+    else:        
+        return render(request,"setOnline.html", {'type': "none"})
+
+def printquestions(request):
+        data = list(models.OnlineTestKeys.objects.values_list())    
+        return JsonResponse({"draw": 1, "recordsTotal": 1, "recordsFiltered": 1, "data": data}, safe=False)
 # Create your views here.

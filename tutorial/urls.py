@@ -36,7 +36,9 @@ urlpatterns = [
     path('',views.homepage, name="homepage"),
     path('settings', views.clientSettings),
     path('settings/job', views.jobSettings),
-    path('online', views.online)
+    path('online', views.online),
+    path('add_questions', views.add_questions),
+    path('printquestions',views.printquestions) 
 ]
 
 StartProcesses()
