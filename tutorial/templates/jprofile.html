@@ -243,21 +243,9 @@ $('#example tbody').on( 'click', 'button', function () {
 	}
 	else
 	{
-	    window.location = "http://ec2-3-17-12-192.us-east-2.compute.amazonaws.com/calendar?id=" + data[0]; 
+	    window.location = "{{ slickhire_host_url }}" + "/calendar?id=" + data[0]; 
 	}
     } );
-	//table.on( 'click', function (e) {
-   //     e.preventDefault();
- 
-        // Get the column API object
-     //   var column = table.column( $(this).attr('data-column') );
- 
-        // Toggle the visibility
-       // column.visible( ! column.visible() );
-//    } );
-
-//table.ajax.reload();
-
 })
 
         </script>

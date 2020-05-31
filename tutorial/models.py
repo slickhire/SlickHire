@@ -1,6 +1,7 @@
 from django.db import models
+from django_prometheus.models import ExportModelOperationsMixin
 
-class Person(models.Model):
+class Person(ExportModelOperationsMixin('candidate'), models.Model):
     checkbox = models.CharField(max_length=1, default="")
     name = models.CharField(max_length=30)
     mobile = models.CharField(max_length=30, primary_key=True)
@@ -34,7 +35,7 @@ class Person(models.Model):
     answer4 = models.TextField(default="0")
     answer5 = models.TextField(default="0")
 
-class JobProfile(models.Model):
+class JobProfile(ExportModelOperationsMixin('jobprofile'), models.Model):
     jobId = models.CharField(max_length=100, primary_key=True)
     designation = models.CharField(max_length=30)
     experience = models.CharField(max_length=30)
@@ -58,7 +59,7 @@ class JobProfile(models.Model):
     interviewedCount = models.IntegerField(default=0)
     rejectedCount = models.IntegerField(default=0)
     onHoldCount = models.IntegerField(default=0)
-    onlineProgExamCategory = models.IntegerField(default=1)
+    onlineProgExamCategory = models.TextField(default="basic")
     onlineProgExamPendingCount = models.IntegerField(default=0)
     onlineProgExamDoneCount = models.IntegerField(default=0)
     question1 = models.IntegerField(default=0)

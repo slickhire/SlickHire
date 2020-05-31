@@ -27,6 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+SLICKHIRE_HOST_URL = 'http://ec2-3-23-98-173.us-east-2.compute.amazonaws.com'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
@@ -49,7 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-	
+	'django_prometheus',
 	'django.contrib.sites',
     'allauth',
     'allauth.account',
@@ -61,6 +62,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+	'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -69,6 +71,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 	'corsheaders.middleware.CorsMiddleware',
+	'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
 ROOT_URLCONF = 'website.urls'
@@ -97,7 +100,7 @@ WSGI_APPLICATION = 'website.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
+        'ENGINE': 'django_prometheus.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
@@ -171,10 +174,10 @@ CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
     'http://localhost:8000',
     'http://localhost:8080',
-    'http://ec2-3-17-12-192.us-east-2.compute.amazonaws.com:3000',
-    'http://ec2-3-17-12-192.us-east-2.compute.amazonaws.com',
-    'http://ec2-3-17-12-192.us-east-2.compute.amazonaws.com:8000',
-    'http://ec2-3-17-12-192.us-east-2.compute.amazonaws.com:8080',
+    SLICKHIRE_HOST_URL,
+    SLICKHIRE_HOST_URL + ':3000',
+    SLICKHIRE_HOST_URL + ':8000',
+    SLICKHIRE_HOST_URL + ':8080',
 ]
 
 CSRF_COOKIE_NAME = "csrftoken"

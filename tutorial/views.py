@@ -13,8 +13,10 @@ from django.core.mail import send_mail
 from django.conf import settings
 import time
 
+from .promStats import PromStats
+
 def jprofile(request):
-   return render(request, "jprofile.html")
+   return render(request, "jprofile.html", { 'slickhire_host_url': settings.SLICKHIRE_HOST_URL })
 @csrf_exempt
 def deleteJob(request):
     try:
@@ -44,7 +46,7 @@ def calendarCandidate(request):
             return HttpResponse("Invalid Request")
 
         
-        return render(request, "calendarCandidate.html", {'data': "[]" if row.calendar == "" else row.calendar, 'uid': request.GET['id']})
+        return render(request, "calendarCandidate.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'data': "[]" if row.calendar == "" else row.calendar, 'uid': request.GET['id']})
 
 @csrf_exempt
 def calendar(request):
@@ -53,7 +55,7 @@ def calendar(request):
         if id == "":
             return HttpResponse("Invalid Request")
         row = models.JobProfile.objects.get(jobId__exact=request.GET['id'])
-        return render(request, "calendar.html", {'data': "[]" if row.calendar == "" else row.calendar, 'jobId': request.GET['id']})
+        return render(request, "calendar.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'data': "[]" if row.calendar == "" else row.calendar, 'jobId': request.GET['id']})
     else:
         if request.POST['id'] != "":
             id = request.POST['id']
@@ -78,7 +80,7 @@ def sendInterviewLink(request):
         print(i)
         candidate = models.Person.objects.get(mobile__exact=i)
         candidate.status = "Invited"
-        url = "http://ec2-3-17-12-192.us-east-2.compute.amazonaws.com/calendarCandidate?id=" + candidate.stringId
+        url = settings.SLICKHIRE_HOST_URL + "/calendarCandidate?id=" + candidate.stringId
         #res = send_mail("Book Interview Slot", url, settings.EMAIL_HOST_USER, candidate.email)
         send_mail('Book Interview Slot', url, settings.EMAIL_HOST_USER, [candidate.email], fail_silently = False)
         candidate.save()
@@ -94,7 +96,7 @@ def sendLink(request):
     row.save()
     data = models.Person.objects.only('questions').get(mobile__exact=candidates[0])
     emails = models.JobProfile.objects.only('emails').get(jobId__exact=data.questions)
-    url = "http://ec2-3-17-12-192.us-east-2.compute.amazonaws.com/getLink?linkId=" + row.linkId
+    url = settings.SLICKHIRE_HOST_URL + "/getLink?linkId=" + row.linkId
     res = send_mail("Candidate Shortlisted", url, settings.EMAIL_HOST_USER, emails.emails.split(","))
     print(candidatesStr)
     return HttpResponse("success")
@@ -127,7 +129,7 @@ def getLink(request):
         return HttpResponse("Invalid Request")
 
 
-    return render(request,"getLink.html",{'linkId':linkId})
+    return render(request,"getLink.html",{'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'linkId':linkId})
 
 @csrf_exempt
 def saveJob(request):
@@ -160,16 +162,20 @@ def saveJob(request):
 	random_index = random.sample(range(1, models.OnlineTestKeys.objects.filter(category=request.POST['onlineProgExamCategory']).count()+1), 5)
 	looper = 1
 	print("Ganga", models.OnlineTestKeys.objects.filter(category=request.POST['onlineProgExamCategory']).count(),len(onlineques))
+	print("here",random_index,onlineques)
 	for option in onlineques:
 		try:
 			dummy = random_index.index(looper)
+			print("looper",looper,dummy)
 			questions.append(option)
 		except ValueError:
+			looper = looper + 1
 			continue
 		if (looper == models.OnlineTestKeys.objects.filter(category=request.POST['onlineProgExamCategory']).count()):
 			break
 		looper = looper + 1
 	print("Ganga qurestion length",len(questions),len(random_index),looper)
+	print(request.POST['onlineProgExamCategory'])
 	job.question1 = questions[0].qid 
 	job.question2 = questions[1].qid
 	job.question3 = questions[2].qid
@@ -190,7 +196,7 @@ def upload(request):
     else:
         jobIdList = list(models.JobProfile.objects.order_by().values_list('jobId', flat=True).distinct())
         student = StudentForm()
-        return render(request,"upload.html",{'form':student, 'jobIdList':jobIdList})
+        return render(request,"upload.html",{'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'form':student, 'jobIdList':jobIdList})
 
 def index(request):  
     if request.method == 'POST': 
@@ -201,7 +207,7 @@ def index(request):
     else: 
         jobIdList = list(models.JobProfile.objects.order_by().values_list('jobId', flat=True).distinct())
         student = StudentForm()
-        return render(request,"index.html",{'form':student, 'jobIdList':jobIdList})    
+        return render(request,"index.html",{'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'form':student, 'jobIdList':jobIdList})    
 
 def data(request):
     data = list(models.Person.objects.values_list().filter(questions=request.GET['jobId']))
@@ -254,8 +260,9 @@ def questions(request):
         data.score = score
         data.save()
 
-        row.interestedCount += 1
         row.save()
+
+        PromStats.Instance().increment_interested_candidates_count("1", data.questions)
 
         return HttpResponse("Data submitted successfuly" + request.POST['strId'])
     else:
@@ -281,35 +288,32 @@ def questions(request):
         data.nextReminderTimestamp = int(time.time()) + 86400
         data.save()
 
-        return render(request,"questions.html", {'qs': skillList, 'stringId': id})
+        return render(request,"questions.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': skillList, 'stringId': id})
 
 def opt_out(request):
     if request.method == 'POST': 
         print('Receieved POST opt-out request for: ', request.POST["strId"])
         candidate = models.Person.objects.only('questions').get(stringId__exact=request.POST['strId'])
         if candidate:
-            jobId = candidate.questions
-            jobStats = models.JobProfile.objects.get(jobId__exact=jobId)
-            jobStats.optedOutCount += 1
-            jobStats.save()
+            PromStats.Instance().increment_optedout_candidates_count("1", candidate.questions)
             candidate.delete()
             return HttpResponse("You have successfuly opted-out")
         else:
             return HttpResponse("Invalid Request")
     else:
         print('Receieved GET opt-out request for: ', request.GET["id"])
-        return render(request,"optout.html", {'stringId': request.GET["id"]})
+        return render(request,"optout.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'stringId': request.GET["id"]})
 
 
 def homepage(request):
     return HttpResponse("First App")
 
 def clientSettings(request):
-    settings = models.JobSettings.objects.get(companyId__exact="1")
+    config = models.JobSettings.objects.get(companyId__exact="1")
     if settings:
-        return render(request, "settings.html", { "jobSettings": settings })
+        return render(request, "settings.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, "jobSettings": config })
     else:
-        return render(request, "settings.html", { "jobSettings": models.JobSettings() })
+        return render(request, "settings.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, "jobSettings": models.JobSettings() })
 
 def jobSettings(request):
 	config = models.JobSettings( \
@@ -331,25 +335,25 @@ def online(request):
             data.save()
             q2 = models.OnlineTestKeys.objects.get(qid=data.question2)
             res = zip([['2',q2.type,q2.question,q2.choice1,q2.choice2,q2.choice3,q2.choice4,data.answer2]])
-            return render(request,"onlinetest.html", {'qs': res, 'stringId': request.POST['strId']})
+            return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId']})
         elif request.POST.get("answer2") is not None:
             data.answer2 = request.POST.get("answer2")
             data.save()
             q3 = models.OnlineTestKeys.objects.get(qid=data.question3)
             res = zip([['3',q3.type,q3.question,q3.choice1,q3.choice2,q3.choice3,q3.choice4,data.answer3]])
-            return render(request,"onlinetest.html", {'qs': res, 'stringId': request.POST['strId']})
+            return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId']})
         elif request.POST.get("answer3") is not None:
             data.answer3 = request.POST.get('answer3')
             data.save()
             q4 = models.OnlineTestKeys.objects.get(qid=data.question4)
             res = zip([['4',q4.type,q4.question,q4.choice1,q4.choice2,q4.choice3,q4.choice4,data.answer4]])
-            return render(request,"onlinetest.html", {'qs': res, 'stringId': request.POST['strId']})
+            return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId']})
         elif request.POST.get("answer4") is not None:
             data.answer4 = request.POST.get('answer4')
             data.save()
             q5 = models.OnlineTestKeys.objects.get(qid=data.question5)
             res = zip([['5',q5.type,q5.question,q5.choice1,q5.choice2,q5.choice3,q5.choice4,data.answer5]])
-            return render(request,"onlinetest.html", {'qs': res, 'stringId': request.POST['strId']})
+            return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId']})
         elif request.POST.get("answer5") is not None:
             data.status = "Received"
             data.answer5 = request.POST.get('answer5')
@@ -371,7 +375,7 @@ def online(request):
                 return HttpResponse("<h3>Online test submitted already.<h3>")            
             q1 = models.OnlineTestKeys.objects.get(qid=data.question1)
             res = zip([['1', q1.type,q1.question,q1.choice1,q1.choice2,q1.choice3,q1.choice4,data.answer1]])
-            return render(request,"onlinetest.html", {'qs': res, 'stringId': id})
+            return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': id})
         except models.Person.DoesNotExist:
             return HttpResponse("Profile not exists to take online test")
 
@@ -380,9 +384,9 @@ def add_questions(request):
         for key, values in request.POST.lists():
             print(key, values)
         if request.POST.get("type") == "program":
-            return render(request,"setOnline.html", {'type': "program"})  
+            return render(request,"setOnline.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'type': "program"})  
         if request.POST.get("type") == "multiple-choice":   
-            return render(request,"setOnline.html", {'type': "multiple-choice"})
+            return render(request,"setOnline.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'type': "multiple-choice"})
         if request.POST.get("question-choice") is not None:            
             if request.POST.getlist("choices") is None:
                return HttpResponse("Choices MUST be submitted")
@@ -428,7 +432,7 @@ def add_questions(request):
             r.save()                   
         return HttpResponse("Data submitted successfuly" + request.POST['strId'])
     else:        
-        return render(request,"setOnline.html", {'type': "none"})
+        return render(request,"setOnline.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'type': "none"})
 
 def printquestions(request):
         data = list(models.OnlineTestKeys.objects.values_list())    
