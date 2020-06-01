@@ -10,6 +10,8 @@ from datetime import datetime
 
 from . import resume_parser
 from . import models
+from . import promStats
+
 from .twilioUtils import sendSMS
 from .twilioUtils import makeVoiceCall
 from .twilioUtils import send_email
@@ -41,9 +43,9 @@ def AddPerson(rparser, jobId):
                       education=rparser['education'], \
                       experience=rparser['experience'], \
                       reminderscount=0)
-	questions_link = "ec2-3-17-12-192.us-east-2.compute.amazonaws.com/questions?id=" + p.stringId
+	questions_link = settings.SLICKHIRE_HOST_URL + "/questions?id=" + p.stringId
 	print(questions_link)
-	optout_link = 'ec2-3-17-12-192.us-east-2.compute.amazonaws.com/opt_out?id=' + p.stringId
+	optout_link = settings.SLICKHIRE_HOST_URL + '/opt_out?id=' + p.stringId
 	jobConfig = models.JobSettings.objects.get(companyId="1")
 	if jobConfig:
 		if jobConfig.smsEnabled:
@@ -69,8 +71,7 @@ def AddPerson(rparser, jobId):
 	#p.question4 = 4
 	#p.question5 = 5
 	p.save()
-	jobProfile.candidatesCount += 1
-	jobProfile.save()
+	promStats.candidates_count.labels("1", jobProfile.jobId).inc()
 
 def Extract_Files(newFile):
 	print('Extract single file from ZIP', newFile)
@@ -192,8 +193,8 @@ def StartQuestionaireReminder():
 		candidates = models.Person.objects.all()
 		for candidate in candidates:
 			if candidate.status != 'Received' and currentTimestamp >= candidate.nextReminderTimestamp:
-				candQuestionsUrl = "ec2-3-17-12-192.us-east-2.compute.amazonaws.com/questions?id={}".format(candidate.stringId)
-				optout_link = 'ec2-3-17-12-192.us-east-2.compute.amazonaws.com/opt_out?id=' + candidate.stringId
+				candQuestionsUrl = settings.SLICKHIRE_HOST_URL + "/questions?id={}".format(candidate.stringId)
+				optout_link = settings.SLICKHIRE_HOST_URL + '/opt_out?id=' + candidate.stringId
 				if jobConfig.smsEnabled:
 					sendSMS(candidate.mobile, "xyz", id)
 				if jobConfig.voiceEnabled:
@@ -202,10 +203,8 @@ def StartQuestionaireReminder():
 					send_email(candidate.name,"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, candidate.email)
 				candidate.reminderscount += 1
 				if candidate.reminderscount == jobConfig.remindersCount:
+					promStats.discarded_candidates_count.labels("1", candidate.questions).inc()
 					candidate.delete()
-					jobStats = models.JobProfile.objects.get(jobId__exact=candidate.questions)
-					jobStats.discardedCount += 1
-					jobStats.save()
 				else:
 					candidate.nextReminderTimestamp = currentTimestamp + 86400
 					candidate.save()

@@ -5,6 +5,7 @@ from tutorial.forms import StudentForm
 from django.core.serializers import serialize
 from django.http import JsonResponse
 from . import models
+from . import promStats
 from django.views.decorators.csrf import csrf_exempt
 import json
 import random
@@ -12,8 +13,6 @@ from django.utils.crypto import get_random_string
 from django.core.mail import send_mail
 from django.conf import settings
 import time
-
-from .promStats import PromStats
 
 def jprofile(request):
    return render(request, "jprofile.html", { 'slickhire_host_url': settings.SLICKHIRE_HOST_URL })
@@ -262,7 +261,7 @@ def questions(request):
 
         row.save()
 
-        PromStats.Instance().increment_interested_candidates_count("1", data.questions)
+        promStats.interested_candidates_count.labels("1", data.questions).inc()
 
         return HttpResponse("Data submitted successfuly" + request.POST['strId'])
     else:
@@ -295,7 +294,7 @@ def opt_out(request):
         print('Receieved POST opt-out request for: ', request.POST["strId"])
         candidate = models.Person.objects.only('questions').get(stringId__exact=request.POST['strId'])
         if candidate:
-            PromStats.Instance().increment_optedout_candidates_count("1", candidate.questions)
+            promStats.optedout_candidates_count.labels("1", candidate.questions).inc()
             candidate.delete()
             return HttpResponse("You have successfuly opted-out")
         else:
