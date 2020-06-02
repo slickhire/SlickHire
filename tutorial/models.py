@@ -34,6 +34,10 @@ class Person(ExportModelOperationsMixin('candidate'), models.Model):
     answer3 = models.TextField(default="0")
     answer4 = models.TextField(default="0")
     answer5 = models.TextField(default="0")
+    onlinePrefProgLang = models.TextField(default="python")
+    onlineProgLangCM = models.TextField(default="python")
+    onlineProgLangIDE =  models.TextField(default="Python")
+    
 
 class JobProfile(ExportModelOperationsMixin('jobprofile'), models.Model):
     jobId = models.CharField(max_length=100, primary_key=True)
@@ -59,7 +63,7 @@ class JobProfile(ExportModelOperationsMixin('jobprofile'), models.Model):
     interviewedCount = models.IntegerField(default=0)
     rejectedCount = models.IntegerField(default=0)
     onHoldCount = models.IntegerField(default=0)
-    onlineProgExamCategory = models.TextField(default="basic")
+    onlineProgExamCategory = models.TextField(default="none")
     onlineProgExamPendingCount = models.IntegerField(default=0)
     onlineProgExamDoneCount = models.IntegerField(default=0)
     question1 = models.IntegerField(default=0)
@@ -67,6 +71,7 @@ class JobProfile(ExportModelOperationsMixin('jobprofile'), models.Model):
     question3 = models.IntegerField(default=0)
     question4 = models.IntegerField(default=0)
     question5 = models.IntegerField(default=0)
+    onlinePrefProgLang = models.TextField(default="any")
 
 class JobSettings(models.Model):
 	companyId = models.CharField(max_length=30, primary_key=True)

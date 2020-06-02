@@ -154,33 +154,34 @@ def saveJob(request):
 		notice.append(request.POST['notice'])
 		notice.append(request.POST['notice'])
 
-	job = models.JobProfile(jobId=request.POST['jobid'], designation=request.POST['designation'], experience = request.POST['exp'], salary = request.POST['salary'], notice = request.POST['notice'], skills = request.POST['skills'], salary1 = salary[0], salary2 = salary[1], exp1 = exp[0], exp2 = exp[1], notice1 = notice[0], notice2 = notice[1], emails=request.POST['emails'], onlineProgExamCategory=request.POST['onlineProgExamCategory'])
-	onlineques = models.OnlineTestKeys.objects.filter(category=request.POST['onlineProgExamCategory'])
-	random_index = []
-	questions = []
-	random_index = random.sample(range(1, models.OnlineTestKeys.objects.filter(category=request.POST['onlineProgExamCategory']).count()+1), 5)
-	looper = 1
-	print("Ganga", models.OnlineTestKeys.objects.filter(category=request.POST['onlineProgExamCategory']).count(),len(onlineques))
-	print("here",random_index,onlineques)
-	for option in onlineques:
-		try:
-			dummy = random_index.index(looper)
-			print("looper",looper,dummy)
-			questions.append(option)
-		except ValueError:
+	job = models.JobProfile(jobId=request.POST['jobid'], designation=request.POST['designation'], experience = request.POST['exp'], salary = request.POST['salary'], notice = request.POST['notice'], skills = request.POST['skills'], salary1 = salary[0], salary2 = salary[1], exp1 = exp[0], exp2 = exp[1], notice1 = notice[0], notice2 = notice[1], emails=request.POST['emails'], onlineProgExamCategory=request.POST['onlineProgExamCategory'], onlinePrefProgLang=request.POST['prefProgLang'])
+	if request.POST['onlineProgExamCategory'] != "none":
+		onlineques = models.OnlineTestKeys.objects.filter(category=request.POST['onlineProgExamCategory'])
+		random_index = []
+		questions = []
+		random_index = random.sample(range(1, models.OnlineTestKeys.objects.filter(category=request.POST['onlineProgExamCategory']).count()+1), 5)
+		looper = 1
+		print("Ganga", models.OnlineTestKeys.objects.filter(category=request.POST['onlineProgExamCategory']).count(),len(onlineques))
+		print("here",random_index,onlineques)
+		for option in onlineques:
+			try:
+				dummy = random_index.index(looper)
+				print("looper",looper,dummy)
+				questions.append(option)
+			except ValueError:
+				looper = looper + 1
+				continue
+			if (looper == models.OnlineTestKeys.objects.filter(category=request.POST['onlineProgExamCategory']).count()):
+				break
 			looper = looper + 1
-			continue
-		if (looper == models.OnlineTestKeys.objects.filter(category=request.POST['onlineProgExamCategory']).count()):
-			break
-		looper = looper + 1
-	print("Ganga qurestion length",len(questions),len(random_index),looper)
-	print(request.POST['onlineProgExamCategory'])
-	job.question1 = questions[0].qid 
-	job.question2 = questions[1].qid
-	job.question3 = questions[2].qid
-	job.question4 = questions[3].qid
-	job.question5 = questions[4].qid
-	print("Ganga Qid",questions[0].qid,questions[1].qid,questions[2].qid,questions[3].qid,questions[4].qid)
+		print("Ganga qurestion length",len(questions),len(random_index),looper)
+		print(request.POST['onlineProgExamCategory'])
+		job.question1 = questions[0].qid 
+		job.question2 = questions[1].qid
+		job.question3 = questions[2].qid
+		job.question4 = questions[3].qid
+		job.question5 = questions[4].qid
+		print("Ganga Qid",questions[0].qid,questions[1].qid,questions[2].qid,questions[3].qid,questions[4].qid)
 	job.save()
 	return HttpResponse("success")
 
@@ -257,6 +258,19 @@ def questions(request):
         for q in skills:
             score += (int(request.POST[q]) * weightPerQuestion) / 10
         data.score = score
+        if request.POST.get('progLang') is not None:
+            data.onlinePrefProgLang = request.POST.get('progLang')
+            if request.POST.get('progLang') == "python":
+                data.onlineProgLangCM = "python"
+                data.onlineProgLangIDE = "Python"
+            elif request.POST.get('progLang') == "cpp":
+                data.onlineProgLangCM = "clike"
+                data.onlineProgLangIDE = "Cpp"
+            elif request.POST.get('progLang') == "java":
+                data.onlineProgLangCM = "text/x-java"
+                data.onlineProgLangIDE = "Java"
+            else:
+                print("Do Nothing")
         data.save()
 
         row.save()
@@ -286,8 +300,11 @@ def questions(request):
         data.question5 = row.question5
         data.nextReminderTimestamp = int(time.time()) + 86400
         data.save()
+        selectLang = "false"
+        if row.onlineProgExamCategory != "none" and row.onlinePrefProgLang == "any":
+            selectLang = "true" 
 
-        return render(request,"questions.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': skillList, 'stringId': id})
+        return render(request,"questions.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': skillList, 'stringId': id, 'selectLang': selectLang})
 
 def opt_out(request):
     if request.method == 'POST': 
@@ -334,27 +351,28 @@ def online(request):
             data.save()
             q2 = models.OnlineTestKeys.objects.get(qid=data.question2)
             res = zip([['2',q2.type,q2.question,q2.choice1,q2.choice2,q2.choice3,q2.choice4,data.answer2]])
-            return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId']})
+            return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId'], 'onlineProgLangCM' :data.onlineProgLangCM, 'onlineProgLangIDE':data.onlineProgLangIDE})
         elif request.POST.get("answer2") is not None:
             data.answer2 = request.POST.get("answer2")
             data.save()
             q3 = models.OnlineTestKeys.objects.get(qid=data.question3)
             print("Ganga",data.answer3, q3.question)
+            print("Ganga",data.onlineProgLangCM,data.onlineProgLangIDE)
             res = zip([['3',q3.type,q3.question,q3.choice1,q3.choice2,q3.choice3,q3.choice4,data.answer3]])
-            return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId']})
+            return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId'], 'onlineProgLangCM' :data.onlineProgLangCM, 'onlineProgLangIDE':data.onlineProgLangIDE})
         elif request.POST.get("answer3") is not None:
             data.answer3 = request.POST.get('answer3')
             data.save()
             print("Ganga", data.answer3)
             q4 = models.OnlineTestKeys.objects.get(qid=data.question4)
             res = zip([['4',q4.type,q4.question,q4.choice1,q4.choice2,q4.choice3,q4.choice4,data.answer4]])
-            return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId']})
+            return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId'], 'onlineProgLangCM' :data.onlineProgLangCM, 'onlineProgLangIDE':data.onlineProgLangIDE})
         elif request.POST.get("answer4") is not None:
             data.answer4 = request.POST.get('answer4')
             data.save()
             q5 = models.OnlineTestKeys.objects.get(qid=data.question5)
             res = zip([['5',q5.type,q5.question,q5.choice1,q5.choice2,q5.choice3,q5.choice4,data.answer5]])
-            return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId']})
+            return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId'], 'onlineProgLangCM' :data.onlineProgLangCM, 'onlineProgLangIDE':data.onlineProgLangIDE})
         elif request.POST.get("answer5") is not None:
             data.status = "Received"
             data.answer5 = request.POST.get('answer5')
@@ -376,7 +394,7 @@ def online(request):
                 return HttpResponse("<h3>Online test submitted already.<h3>")            
             q1 = models.OnlineTestKeys.objects.get(qid=data.question1)
             res = zip([['1', q1.type,q1.question,q1.choice1,q1.choice2,q1.choice3,q1.choice4,data.answer1]])
-            return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': id})
+            return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': id, 'onlineProgLangCM' :data.onlineProgLangCM, 'onlineProgLangIDE':data.onlineProgLangIDE})
         except models.Person.DoesNotExist:
             return HttpResponse("Profile not exists to take online test")
 

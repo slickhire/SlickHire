@@ -110,37 +110,38 @@ def OnlineTestEval():
 						else:
 							tests = [ques.test1, ques.test2, ques.test3, ques.test4, ques.test5]
 							for test in tests:
-								url = 'https://ide.geeksforgeeks.org/main.php'
-								data = {'lang': "Cpp", 'code': ans, 'input': test.split(';', 1)[0], 'save': 'false'}
-								headers= {'origin':'https://ide.geeksforgeeks.org/'}
-								response = requests.post(url, data , headers=headers)
-								print(response.status_code)
-								print(response.text)
-								jsonRes = response.json()
-								print(jsonRes['sid'])
-								sid = jsonRes['sid']
-								# After 10 retries , we will declare that IDE has some issues and retry later.
-								retry = 0
-								while True:
-									data = {'requestType': "fetchResults", 'sid' : sid } 
-									response = requests.post('https://ide.geeksforgeeks.org/submissionResult.php', data , headers=headers)
+								if test != "null":
+									url = 'https://ide.geeksforgeeks.org/main.php'
+									data = {'lang': eval.onlineProgLangIDE, 'code': ans, 'input': test.split(';', 1)[0], 'save': 'false'}
+									headers= {'origin':'https://ide.geeksforgeeks.org/'}
+									response = requests.post(url, data , headers=headers)
 									print(response.status_code)
 									print(response.text)
-									outputres = response.json()
-									retry += 1
-									if  outputres['status'] == 'SUCCESS' or retry == 100:        
+									jsonRes = response.json()
+									print(jsonRes['sid'])
+									sid = jsonRes['sid']
+									# After 10 retries , we will declare that IDE has some issues and retry later.
+									retry = 0
+									while True:
+										data = {'requestType': "fetchResults", 'sid' : sid } 
+										response = requests.post('https://ide.geeksforgeeks.org/submissionResult.php', data , headers=headers)
+										print(response.status_code)
+										print(response.text)
+										outputres = response.json()
+										retry += 1
+										if  outputres['status'] == 'SUCCESS' or retry == 100:        
+											break
+									# Have an error counter to know that ide is misbehaving
+									if retry == 100:
 										break
-								# Have an error counter to know that ide is misbehaving
-								if retry == 100:
-									break
-								if outputres['compResult'] == 'S' and test.split(';', 1)[1] == outputres['output']:
-									score += 10
-								# Additonally have a stat per Person to know how many programs resuled in compilation errors
-								if outputres['compResult'] != 'S':
-									eval.onlinetestcompileerrors += 1                        
-								print(test.split(';', 1)[0])
-								print(test.split(';', 1)[1])
-								print(outputres['output'])
+									if outputres['compResult'] == 'S' and test.split(';', 1)[1] == outputres['output']:
+										score += 10
+									# Additonally have a stat per Person to know how many programs resuled in compilation errors
+									if outputres['compResult'] != 'S':
+										eval.onlinetestcompileerrors += 1                        
+									print(test.split(';', 1)[0])
+									print(test.split(';', 1)[1])
+									print(outputres['output'])
 					if retry == 100:
 					    break
 					eval.onlinetestscore = score

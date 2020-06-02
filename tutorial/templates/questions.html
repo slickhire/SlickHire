@@ -29,6 +29,17 @@
             <label class="control-label"> What is your current experience in years? </label>
             <input type="text" class="form-control" name= "experience" >
     </div>
+    {% if selectLang == "true" %}
+    <br><strong>Preferred Programming Language to take Online Test</strong>
+    <div class="form-group">        
+        <input type="radio" id="java" name="progLang" value="java">
+        <label for="type1">java</label><br>        
+        <input type="radio" id="python" name="progLang" value="python">        
+        <label for="type2">python</label><br>
+        <input type="radio" id="cpp" name="progLang" value="cpp">        
+        <label for="type2">cpp</label><br>
+    </div>
+    {% endif %}
 
 
 
