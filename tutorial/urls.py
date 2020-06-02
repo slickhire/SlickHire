@@ -38,6 +38,7 @@ urlpatterns = [
     path('settings/job', views.jobSettings),
     path('online', views.online),
     path('add_questions', views.add_questions),
+    path('printPersons', views.printPersons),
     path('printquestions',views.printquestions) 
 ]
 

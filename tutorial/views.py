@@ -339,11 +339,13 @@ def online(request):
             data.answer2 = request.POST.get("answer2")
             data.save()
             q3 = models.OnlineTestKeys.objects.get(qid=data.question3)
+            print("Ganga",data.answer3, q3.question)
             res = zip([['3',q3.type,q3.question,q3.choice1,q3.choice2,q3.choice3,q3.choice4,data.answer3]])
             return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId']})
         elif request.POST.get("answer3") is not None:
             data.answer3 = request.POST.get('answer3')
             data.save()
+            print("Ganga", data.answer3)
             q4 = models.OnlineTestKeys.objects.get(qid=data.question4)
             res = zip([['4',q4.type,q4.question,q4.choice1,q4.choice2,q4.choice3,q4.choice4,data.answer4]])
             return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId']})
@@ -436,4 +438,8 @@ def add_questions(request):
 def printquestions(request):
         data = list(models.OnlineTestKeys.objects.values_list())    
         return JsonResponse({"draw": 1, "recordsTotal": 1, "recordsFiltered": 1, "data": data}, safe=False)
+
+def printPersons(request):
+    data = list(models.Person.objects.values_list())
+    return  JsonResponse({"draw": 1, "recordsTotal": 1, "recordsFiltered": 1, "data": data}, safe=False)
 # Create your views here.
