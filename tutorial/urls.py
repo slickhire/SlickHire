@@ -39,6 +39,7 @@ urlpatterns = [
     path('online', views.online),
     path('add_questions', views.add_questions),
     path('printPersons', views.printPersons),
+    path('printJobs', views.printjobs),
     path('printquestions',views.printquestions) 
 ]
 

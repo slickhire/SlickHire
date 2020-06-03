@@ -258,19 +258,25 @@ def questions(request):
         for q in skills:
             score += (int(request.POST[q]) * weightPerQuestion) / 10
         data.score = score
-        if request.POST.get('progLang') is not None:
+        print("Ganga",request.POST.get('progLang'))
+        if request.POST.get('progLang') is None:
+            progLang = row.onlinePrefProgLang
+            data.onlinePrefProgLang = row.onlinePrefProgLang 
+        else:
+            progLang = request.POST.get('progLang')
             data.onlinePrefProgLang = request.POST.get('progLang')
-            if request.POST.get('progLang') == "python":
-                data.onlineProgLangCM = "python"
-                data.onlineProgLangIDE = "Python"
-            elif request.POST.get('progLang') == "cpp":
-                data.onlineProgLangCM = "clike"
-                data.onlineProgLangIDE = "Cpp"
-            elif request.POST.get('progLang') == "java":
-                data.onlineProgLangCM = "text/x-java"
-                data.onlineProgLangIDE = "Java"
-            else:
-                print("Do Nothing")
+
+        if progLang == "python":
+            data.onlineProgLangCM = "python"
+            data.onlineProgLangIDE = "Python"
+        elif progLang == "cpp":
+            data.onlineProgLangCM = "clike"
+            data.onlineProgLangIDE = "Cpp"
+        elif progLang == "java":
+            data.onlineProgLangCM = "text/x-java"
+            data.onlineProgLangIDE = "Java"
+        else:
+            print("Do Nothing")
         data.save()
 
         row.save()
@@ -348,12 +354,16 @@ def online(request):
         print(request.POST.get("answer1"))
         if request.POST.get("answer1") is not None:
             data.answer1 = request.POST.get("answer1")
+            data.onlineAnswer1Time = int(time.time()) - data.onlineStartTimeStamp 
+            data.onlineStartTimeStamp = int(time.time())
             data.save()
             q2 = models.OnlineTestKeys.objects.get(qid=data.question2)
             res = zip([['2',q2.type,q2.question,q2.choice1,q2.choice2,q2.choice3,q2.choice4,data.answer2]])
             return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId'], 'onlineProgLangCM' :data.onlineProgLangCM, 'onlineProgLangIDE':data.onlineProgLangIDE})
         elif request.POST.get("answer2") is not None:
             data.answer2 = request.POST.get("answer2")
+            data.onlineAnswer2Time = int(time.time()) - data.onlineStartTimeStamp
+            data.onlineStartTimeStamp = int(time.time())
             data.save()
             q3 = models.OnlineTestKeys.objects.get(qid=data.question3)
             print("Ganga",data.answer3, q3.question)
@@ -362,6 +372,8 @@ def online(request):
             return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId'], 'onlineProgLangCM' :data.onlineProgLangCM, 'onlineProgLangIDE':data.onlineProgLangIDE})
         elif request.POST.get("answer3") is not None:
             data.answer3 = request.POST.get('answer3')
+            data.onlineAnswer3Time = int(time.time()) - data.onlineStartTimeStamp
+            data.onlineStartTimeStamp = int(time.time())
             data.save()
             print("Ganga", data.answer3)
             q4 = models.OnlineTestKeys.objects.get(qid=data.question4)
@@ -369,6 +381,8 @@ def online(request):
             return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId'], 'onlineProgLangCM' :data.onlineProgLangCM, 'onlineProgLangIDE':data.onlineProgLangIDE})
         elif request.POST.get("answer4") is not None:
             data.answer4 = request.POST.get('answer4')
+            data.onlineAnswer4Time = int(time.time()) - data.onlineStartTimeStamp
+            data.onlineStartTimeStamp = int(time.time())
             data.save()
             q5 = models.OnlineTestKeys.objects.get(qid=data.question5)
             res = zip([['5',q5.type,q5.question,q5.choice1,q5.choice2,q5.choice3,q5.choice4,data.answer5]])
@@ -378,6 +392,8 @@ def online(request):
             data.answer5 = request.POST.get('answer5')
             data.onlinetestcomplete = 1
             data.onlinetesteval = 0
+            data.onlineAnswer5Time = int(time.time()) - data.onlineStartTimeStamp
+            data.onlineStartTimeStamp = int(time.time())
             data.save()
             return HttpResponse("Answers submitted successfuly" + data.answer1 + data.answer2 + data.answer3 + data.answer4 + data.answer5)
         else:
@@ -394,6 +410,8 @@ def online(request):
                 return HttpResponse("<h3>Online test submitted already.<h3>")            
             q1 = models.OnlineTestKeys.objects.get(qid=data.question1)
             res = zip([['1', q1.type,q1.question,q1.choice1,q1.choice2,q1.choice3,q1.choice4,data.answer1]])
+            data.onlineStartTimeStamp = int(time.time())
+            data.save()
             return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': id, 'onlineProgLangCM' :data.onlineProgLangCM, 'onlineProgLangIDE':data.onlineProgLangIDE})
         except models.Person.DoesNotExist:
             return HttpResponse("Profile not exists to take online test")
@@ -459,5 +477,9 @@ def printquestions(request):
 
 def printPersons(request):
     data = list(models.Person.objects.values_list())
+    return  JsonResponse({"draw": 1, "recordsTotal": 1, "recordsFiltered": 1, "data": data}, safe=False)
+
+def printjobs(request):
+    data = list(models.JobProfile.objects.values_list())
     return  JsonResponse({"draw": 1, "recordsTotal": 1, "recordsFiltered": 1, "data": data}, safe=False)
 # Create your views here.

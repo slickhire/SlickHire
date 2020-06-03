@@ -37,6 +37,12 @@ class Person(ExportModelOperationsMixin('candidate'), models.Model):
     onlinePrefProgLang = models.TextField(default="python")
     onlineProgLangCM = models.TextField(default="python")
     onlineProgLangIDE =  models.TextField(default="Python")
+    onlineStartTimeStamp = models.IntegerField(default=0)
+    onlineAnswer1Time = models.IntegerField(default=0)
+    onlineAnswer2Time = models.IntegerField(default=0)
+    onlineAnswer3Time = models.IntegerField(default=0)
+    onlineAnswer4Time = models.IntegerField(default=0)
+    onlineAnswer5Time = models.IntegerField(default=0)
     
 
 class JobProfile(ExportModelOperationsMixin('jobprofile'), models.Model):
