@@ -198,6 +198,11 @@ def upload(request):
         student = StudentForm()
         return render(request,"upload.html",{'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'form':student, 'jobIdList':jobIdList})
 
+def getJobIdList(request):
+    jobIdList = list(models.JobProfile.objects.order_by().values_list('jobId', flat=True).distinct())
+    responsestr = ','.join([str(elem) for elem in jobIdList]) 
+    return HttpResponse(responsestr)
+
 def index(request):  
     if request.method == 'POST': 
         student = StudentForm(request.POST, request.FILES)

@@ -37,6 +37,7 @@ urlpatterns = [
     path('settings', views.clientSettings),
     path('settings/job', views.jobSettings),
     path('online', views.online),
+    path('getJobIdList', views.getJobIdList),
     path('add_questions', views.add_questions),
     path('printPersons', views.printPersons),
     path('printJobs', views.printjobs),
