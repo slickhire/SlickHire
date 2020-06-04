@@ -359,7 +359,7 @@ def online(request):
         print(request.POST.get("answer1"))
         if request.POST.get("answer1") is not None:
             data.answer1 = request.POST.get("answer1")
-            data.onlineAnswer1Time = int(time.time()) - data.onlineStartTimeStamp 
+            data.onlineAnswer1Time += int(time.time()) - data.onlineStartTimeStamp 
             data.onlineStartTimeStamp = int(time.time())
             data.save()
             q2 = models.OnlineTestKeys.objects.get(qid=data.question2)
@@ -367,7 +367,7 @@ def online(request):
             return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId'], 'onlineProgLangCM' :data.onlineProgLangCM, 'onlineProgLangIDE':data.onlineProgLangIDE})
         elif request.POST.get("answer2") is not None:
             data.answer2 = request.POST.get("answer2")
-            data.onlineAnswer2Time = int(time.time()) - data.onlineStartTimeStamp
+            data.onlineAnswer2Time += int(time.time()) - data.onlineStartTimeStamp
             data.onlineStartTimeStamp = int(time.time())
             data.save()
             q3 = models.OnlineTestKeys.objects.get(qid=data.question3)
@@ -377,7 +377,7 @@ def online(request):
             return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId'], 'onlineProgLangCM' :data.onlineProgLangCM, 'onlineProgLangIDE':data.onlineProgLangIDE})
         elif request.POST.get("answer3") is not None:
             data.answer3 = request.POST.get('answer3')
-            data.onlineAnswer3Time = int(time.time()) - data.onlineStartTimeStamp
+            data.onlineAnswer3Time += int(time.time()) - data.onlineStartTimeStamp
             data.onlineStartTimeStamp = int(time.time())
             data.save()
             print("Ganga", data.answer3)
@@ -386,7 +386,7 @@ def online(request):
             return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': request.POST['strId'], 'onlineProgLangCM' :data.onlineProgLangCM, 'onlineProgLangIDE':data.onlineProgLangIDE})
         elif request.POST.get("answer4") is not None:
             data.answer4 = request.POST.get('answer4')
-            data.onlineAnswer4Time = int(time.time()) - data.onlineStartTimeStamp
+            data.onlineAnswer4Time += int(time.time()) - data.onlineStartTimeStamp
             data.onlineStartTimeStamp = int(time.time())
             data.save()
             q5 = models.OnlineTestKeys.objects.get(qid=data.question5)
@@ -397,7 +397,7 @@ def online(request):
             data.answer5 = request.POST.get('answer5')
             data.onlinetestcomplete = 1
             data.onlinetesteval = 0
-            data.onlineAnswer5Time = int(time.time()) - data.onlineStartTimeStamp
+            data.onlineAnswer5Time += int(time.time()) - data.onlineStartTimeStamp
             data.onlineStartTimeStamp = int(time.time())
             data.save()
             return HttpResponse("Answers submitted successfuly" + data.answer1 + data.answer2 + data.answer3 + data.answer4 + data.answer5)
