@@ -43,6 +43,7 @@ class Person(ExportModelOperationsMixin('candidate'), models.Model):
     onlineAnswer3Time = models.IntegerField(default=0)
     onlineAnswer4Time = models.IntegerField(default=0)
     onlineAnswer5Time = models.IntegerField(default=0)
+    calendar = models.CharField(max_length=30, default = "")
     
 
 class JobProfile(ExportModelOperationsMixin('jobprofile'), models.Model):
@@ -78,6 +79,7 @@ class JobProfile(ExportModelOperationsMixin('jobprofile'), models.Model):
     question4 = models.IntegerField(default=0)
     question5 = models.IntegerField(default=0)
     onlinePrefProgLang = models.TextField(default="any")
+    availSlots = models.CharField(max_length=5000, default="")
 
 class JobSettings(models.Model):
 	companyId = models.CharField(max_length=30, primary_key=True)

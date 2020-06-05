@@ -43,9 +43,15 @@ def calendarCandidate(request):
 
         except models.Person.DoesNotExist:
             return HttpResponse("Invalid Request")
+        newVal = row.availSlots 
 
-        
-        return render(request, "calendarCandidate.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'data': "[]" if row.calendar == "" else row.calendar, 'uid': request.GET['id']})
+        if data.calendar != "":
+            if row.availSlots == "[]":
+                newVal = "[" + data.calendar + "]"
+            else:
+                # atleast one entry is there
+                newVal = row.availSlots.replace("]", "," + data.calendar + "]")
+        return render(request, "calendarCandidate.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'data': "[]" if newVal == "" else newVal, 'uid': request.GET['id']})
 
 @csrf_exempt
 def calendar(request):
@@ -60,15 +66,55 @@ def calendar(request):
             id = request.POST['id']
             row = models.JobProfile.objects.get(jobId__exact=id)
             row.calendar = request.POST['calendar']
+            row.availSlots = row.calendar
             row.save()
         else:
             uid = request.POST['uid']
             user = models.Person.objects.get(stringId__exact=request.POST['uid'])
             id = user.questions
             row = models.JobProfile.objects.get(jobId__exact=id)
+            
+            
+            if user.calendar != "":
+                if "#FFA07A" not in request.POST['calendar']:
+                    return HttpResponse("You already have booking")
+                # cancel booking
+                newVal = request.POST['calendar']
+                newVal = newVal.replace("#FFA07A", "#FFFFFF");
+                print("newVal", newVal)
+                newVal = newVal.replace("\"title\":\"" + user.name + "\"", "\"title\":\"\"")
+                print("cancelling and inserting", newVal)
+                row.calendar = row.calendar.replace(request.POST['calendar'], newVal, 1)
+                print("cancelled", row.availSlots)
+
+                if row.availSlots != "[]":
+                    print("cancell no avail slot")
+                    newVal = "," + newVal
+                row.availSlots = row.availSlots.replace("]", newVal + "]")
+
+                user.calendar = ""
+                user.save()
+                row.save()
+                return HttpResponse("Cancelled Successfully")
+
+
+            if request.POST['calendar'] not in row.calendar:
+                return HttpResponse("No Slots Available")
+
             newVal = request.POST['calendar']
             newVal = newVal.replace("#FFFFFF", "#FFA07A");
+            print("newVal", newVal, user.name, "nameend")
+            newVal = newVal.replace("\"title\":\"\"", "\"title\":\"" + user.name + "\"")
+            print("booking nee val", newVal)
             row.calendar = row.calendar.replace(request.POST['calendar'], newVal, 1)
+            if row.availSlots != "[]":
+                if "," + request.POST['calendar'] in row.availSlots:
+                    row.availSlots = row.availSlots.replace("," + request.POST['calendar'], "", 1)
+                else:
+                    row.availSlots = row.availSlots.replace(request.POST['calendar'], "", 1)
+            print("after booking", row.availSlots)
+            user.calendar = newVal
+            user.save()
             row.save()
         return HttpResponse("success")
 

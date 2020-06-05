@@ -1513,6 +1513,7 @@ h2{
 					<h4 class="modal-title"><span class="event-icon"></span><span class="event-title"></span></h4>
 					  <input type="hidden" id="startTime" name="startTime" value="">
 					  <input type="hidden" id="eventId" name="eventId" value="">
+					  <input type="hidden" id="title" name="title" value=""> 
 <input type="hidden" id="bgColor" name="bgColor" value="">
 
 					    <input type="hidden" id="endTime" name="endTime" value=""> 
@@ -1526,6 +1527,27 @@ h2{
 		</div>
 	</div>
 
+<div id="modal-view-cancel-event" class="modal modal-top fade calendar-modal">
+                <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                                <div class="modal-body">
+                                        <h4 class="modal-title"><span class="event-icon"></span><span class="event-title"></span></h4>
+                                          <input type="hidden" id="startTime" name="startTime" value="">
+                                          <input type="hidden" id="eventId" name="eventId" value="">
+                                    <input type="hidden" id="title" name="title" value="">
+<input type="hidden" id="bgColor" name="bgColor" value="">
+
+                                            <input type="hidden" id="endTime" name="endTime" value="">
+                                        <div class="event-body"></div>
+                                </div>
+                                <div class="modal-footer">
+                                        <button type="button" class="btn btn-danger" data-dismiss="modal" id="cancelEvent">Cancel</button>
+                                        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                                </div>
+                        </div>
+                </div>
+        </div>
+	
 <div id="modal-view-event-add" class="modal modal-top fade calendar-modal">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -1608,9 +1630,20 @@ timeFormat: 'h:mma',
 				jQuery('.event-title').html(moment(event.start).format('MM/DD') + "</br>" + moment(event.start).format('hh:mm') + "-" + moment(event.end).format('hh:mm'));
 				$("#startTime").val(event.start.toISOString());
 				$("#endTime").val(event.end.toISOString());
-				$("#eventId").val(event._id);
+				$("#eventId").val(event.id);
+				$("#title").val(event.title);
 				$("#bgColor").val(event.backgroundColor);
+				console.log("color", event.backgroundColor, event.backgroundColor == "FFA07A", "end")
+				if (event.backgroundColor == "#FFA07A")
+				{
+			            console.log("cancelling")
+				    //cancel
+				    jQuery('#modal-view-cancel-event').modal();
+				}
+				else
+				{
 					jQuery('#modal-view-event').modal();
+				}
 			},
 		})
 	});
@@ -1618,7 +1651,7 @@ timeFormat: 'h:mma',
 		var myEvent = {
   start: $("#startTime").val(),
   end: $("#endTime").val(),
-  title:"",
+  title:$("#title").val(),
   backgroundColor: $("#bgColor").val(),
 };
 
@@ -1632,12 +1665,38 @@ var json = JSON.stringify(myEvent)
     function(data,status){
         $.alert({
         title: 'Alert!',
-        content: 'Saved!',
+        content: data,
     });
     });
 console.log(json)
 	
 	});
+
+ $( "#cancelEvent" ).click(function() {
+                var myEvent = {
+  start: $("#startTime").val(),
+  end: $("#endTime").val(),
+  title:$("#title").val(),
+  backgroundColor: $("#bgColor").val(),
+};
+
+var json = JSON.stringify(myEvent)
+        $.post("calendar",
+    {
+       uid: $('#uid').val(),
+       id: "",
+       calendar: json
+    },
+    function(data,status){
+        $.alert({
+        title: 'Alert!',
+        content: data,
+    });
+    });
+console.log(json)
+
+        });
+	
 
 })(jQuery);
 
