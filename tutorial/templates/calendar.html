@@ -1515,6 +1515,7 @@ h2{
 					<h4 class="modal-title"><span class="event-icon"></span><span class="event-title"></span></h4>
 					  <input type="hidden" id="startTime" name="startTime" value="">
 					  <input type="hidden" id="eventId" name="eventId" value="">
+					  <input type="hidden" id="backgroundColor" name="backgroundColor" value="">
 
 					    <input type="hidden" id="endTime" name="endTime" value=""> 
 					<div class="event-body"></div>
@@ -1572,7 +1573,9 @@ h2{
 });*/
 
 var items = [];
+var deletedEventsList = "";
 
+var eventId = {{ eventId }};
 (function () {
     'use strict';
     // ------------------------------------------------------- //
@@ -1605,6 +1608,7 @@ timeFormat: 'h:mma',
         click: function() {
 		var json = JSON.stringify($("#calendar").fullCalendar("clientEvents").map(function(e) {
 			return {
+	id: e.id,
         start: e.start,
         end: e.end,
         title: e.title,
@@ -1615,12 +1619,14 @@ timeFormat: 'h:mma',
 	    $.post("calendar",
     {
        id: $('#jobId').val(),
+       lastEventId: eventId,
+       deletedEventsList: deletedEventsList,
        calendar: json
     },
     function(data,status){
         $.alert({
         title: 'Alert!',
-        content: 'Saved!',
+        content: data,
     });
     });
 	
@@ -1636,6 +1642,7 @@ timeFormat: 'h:mma',
 			dayClick: function(date, allDay, jsEvent, view) {
                                 //alert(date);
 				var myEvent = {
+  id: eventId++,
   title:"",
   allDay: false,
   start: date,
@@ -1654,15 +1661,27 @@ timeFormat: 'h:mma',
 			eventClick: function(event, jsEvent, view) {
 			        jQuery('.event-icon').html("<i class='fa fa-"+event.icon+"'></i>");
 				jQuery('.event-title').html(moment(event.start).format('MM/DD') + "</br>" + moment(event.start).format('hh:mm') + "-" + moment(event.end).format('hh:mm'));
+				var res = event.title.split(",");
+				if (res.length > 0)
+				{
+					jQuery('.event-title').append("</br>" + "Mobile:" + res[1] + "</br>" + "Name: " + res[0]);
+
+				}
+
 				$("#startTime").val(event.start);
 				$("#endTime").val(event.end);
-				$("#eventId").val(event._id);
+				$("#eventId").val(event.id);
+				$("#backgroundColor").val(event.backgroundColor);
 					jQuery('#modal-view-event').modal();
 			},
 		})
 	});
 	$( "#deleteEvent" ).click(function() {
 		$('#calendar').fullCalendar('removeEvents',$("#eventId").val());
+		if ($("#backgroundColor").val() == "#FFA07A")
+		{
+			deletedEventsList += "," + $("#eventId").val() + ",";
+		}
 });
 
 })(jQuery);

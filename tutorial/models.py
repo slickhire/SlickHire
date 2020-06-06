@@ -80,6 +80,7 @@ class JobProfile(ExportModelOperationsMixin('jobprofile'), models.Model):
     question5 = models.IntegerField(default=0)
     onlinePrefProgLang = models.TextField(default="any")
     availSlots = models.CharField(max_length=5000, default="")
+    lastEventId = models.IntegerField(default=1)
 
 class JobSettings(models.Model):
 	companyId = models.CharField(max_length=30, primary_key=True)

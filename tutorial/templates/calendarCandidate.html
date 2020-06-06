@@ -1649,6 +1649,7 @@ timeFormat: 'h:mma',
 	});
 	$( "#saveEvent" ).click(function() {
 		var myEvent = {
+  id: parseInt($("#eventId").val()),
   start: $("#startTime").val(),
   end: $("#endTime").val(),
   title:$("#title").val(),
@@ -1674,6 +1675,7 @@ console.log(json)
 
  $( "#cancelEvent" ).click(function() {
                 var myEvent = {
+  id: parseInt($("#eventId").val()),
   start: $("#startTime").val(),
   end: $("#endTime").val(),
   title:$("#title").val(),
