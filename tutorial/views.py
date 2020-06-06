@@ -13,6 +13,8 @@ from django.utils.crypto import get_random_string
 from django.core.mail import send_mail
 from django.conf import settings
 import time
+import json
+
 
 def jprofile(request):
    return render(request, "jprofile.html", { 'slickhire_host_url': settings.SLICKHIRE_HOST_URL })
@@ -60,20 +62,49 @@ def calendar(request):
         if id == "":
             return HttpResponse("Invalid Request")
         row = models.JobProfile.objects.get(jobId__exact=request.GET['id'])
-        return render(request, "calendar.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'data': "[]" if row.calendar == "" else row.calendar, 'jobId': request.GET['id']})
+        return render(request, "calendar.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'data': "[]" if row.calendar == "" else row.calendar, 'jobId': request.GET['id'], 'eventId': row.lastEventId})
     else:
         if request.POST['id'] != "":
             id = request.POST['id']
             row = models.JobProfile.objects.get(jobId__exact=id)
+            print(row.calendar)
+            if row.calendar == "":
+                row.calendar = "[]"
+
+            oldCalendar = json.loads(row.calendar)
+            newCalendar = json.loads(request.POST['calendar'])
+
+            newCalendarDictionary = {}
+            availSlots = []
+            for newEvent in newCalendar:
+                newCalendarDictionary[newEvent["id"]] = 1
+                print(newEvent, newEvent["backgroundColor"])
+                if newEvent["backgroundColor"] == "#FFFFFF":
+                    # this is new one
+                    availSlots.append(newEvent)
+                    print("list push", availSlots)
+
+            for event in oldCalendar:
+                if event["backgroundColor"] == "#FFA07A" and newCalendarDictionary.get(str(event["id"])) == None and "," + str(event["id"]) + "," not in request.POST['deletedEventsList']: 
+                    return HttpResponse("One of the slot you have deleted is already booked, try again!!")
+
+                if request.POST['deletedEventsList'] != "" and ("," + event["id"] + ",") in request.POST['deletedEventsList']:
+                    user = models.Person.objects.get(stringId__exact=event["title"].split(",")[2])
+                    print("candidate interview deleted", user.name)
+
+
+
             row.calendar = request.POST['calendar']
-            row.availSlots = row.calendar
+            row.availSlots = json.dumps(availSlots, indent=None, separators=(',', ':'))
+            print("new avail slots", row.availSlots)
+            row.lastEventId = request.POST['lastEventId']
             row.save()
         else:
             uid = request.POST['uid']
             user = models.Person.objects.get(stringId__exact=request.POST['uid'])
             id = user.questions
             row = models.JobProfile.objects.get(jobId__exact=id)
-            
+            print("post, calendar=", row.calendar, request.POST['calendar']) 
             
             if user.calendar != "":
                 if "#FFA07A" not in request.POST['calendar']:
@@ -82,7 +113,7 @@ def calendar(request):
                 newVal = request.POST['calendar']
                 newVal = newVal.replace("#FFA07A", "#FFFFFF");
                 print("newVal", newVal)
-                newVal = newVal.replace("\"title\":\"" + user.name + "\"", "\"title\":\"\"")
+                newVal = newVal.replace("\"title\":\"" + user.name + "," + user.mobile + "," + user.stringId + "\"", "\"title\":\"\"")
                 print("cancelling and inserting", newVal)
                 row.calendar = row.calendar.replace(request.POST['calendar'], newVal, 1)
                 print("cancelled", row.availSlots)
@@ -97,19 +128,22 @@ def calendar(request):
                 row.save()
                 return HttpResponse("Cancelled Successfully")
 
-
             if request.POST['calendar'] not in row.calendar:
                 return HttpResponse("No Slots Available")
 
             newVal = request.POST['calendar']
             newVal = newVal.replace("#FFFFFF", "#FFA07A");
             print("newVal", newVal, user.name, "nameend")
-            newVal = newVal.replace("\"title\":\"\"", "\"title\":\"" + user.name + "\"")
+            newVal = newVal.replace("\"title\":\"\"", "\"title\":\"" + user.name + "," + user.mobile + "," + user.stringId + "\"")
             print("booking nee val", newVal)
             row.calendar = row.calendar.replace(request.POST['calendar'], newVal, 1)
+            print("before booking", row.availSlots)
             if row.availSlots != "[]":
                 if "," + request.POST['calendar'] in row.availSlots:
                     row.availSlots = row.availSlots.replace("," + request.POST['calendar'], "", 1)
+                elif request.POST['calendar'] + "," in row.availSlots:
+                    #first element
+                    row.availSlots = row.availSlots.replace(request.POST['calendar'] + ",", "", 1)
                 else:
                     row.availSlots = row.availSlots.replace(request.POST['calendar'], "", 1)
             print("after booking", row.availSlots)
