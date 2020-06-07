@@ -30,9 +30,10 @@ from django.template.loader import render_to_string, get_template
 from django.template import Context
 
 def AddPerson(rparser, jobId):
-	models.Person.objects.filter(mobile__exact = "9008728152").delete()
 	print("latest",rparser['name'],rparser['email'],rparser['mobile_number'], rparser['skills'], jobId)
 	jobProfile = models.JobProfile.objects.get(jobId__exact=jobId)
+	promStats.subscribed_candidates_count.labels(company_name="1", job_profile="test").inc()
+	promStats.subscribed_candidates_count.labels(company_name="1", job_profile="test").inc()
 	p = models.Person(name=rparser['name'],  \
                       mobile=rparser['mobile_number'], \
                       stringId = get_random_string(length=30), \
@@ -64,14 +65,9 @@ def AddPerson(rparser, jobId):
                        questions_link, \
                        optout_link, \
                        p.email)
-	print("Ganga",p.stringId)
-	#p.question1 = 1
-	#p.question2 = 2
-	#p.question3 = 3
-	#p.question4 = 4
-	#p.question5 = 5
+	p.status = "Subscribed"
+	p.statusTimestamp = int(time.time())
 	p.save()
-	promStats.candidates_count.labels("1", jobProfile.jobId).inc()
 
 def Extract_Files(newFile):
 	print('Extract single file from ZIP', newFile)
@@ -193,7 +189,7 @@ def StartQuestionaireReminder():
 		
 		candidates = models.Person.objects.all()
 		for candidate in candidates:
-			if candidate.status != 'Received' and currentTimestamp >= candidate.nextReminderTimestamp:
+			if candidate.status != 'Interested' and currentTimestamp >= candidate.nextReminderTimestamp:
 				candQuestionsUrl = settings.SLICKHIRE_HOST_URL + "/questions?id={}".format(candidate.stringId)
 				optout_link = settings.SLICKHIRE_HOST_URL + '/opt_out?id=' + candidate.stringId
 				if jobConfig.smsEnabled:
@@ -205,6 +201,8 @@ def StartQuestionaireReminder():
 				candidate.reminderscount += 1
 				if candidate.reminderscount == jobConfig.remindersCount:
 					promStats.discarded_candidates_count.labels("1", candidate.questions).inc()
+					promStats.candidates_state_transition.labels("1", candidate.questions, "Subscribed").observe(\
+											((int(time.time()) - candidate.statusTimestamp) / 3600))
 					candidate.delete()
 				else:
 					candidate.nextReminderTimestamp = currentTimestamp + 86400

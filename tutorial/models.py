@@ -44,6 +44,7 @@ class Person(ExportModelOperationsMixin('candidate'), models.Model):
     onlineAnswer4Time = models.IntegerField(default=0)
     onlineAnswer5Time = models.IntegerField(default=0)
     calendar = models.CharField(max_length=30, default = "")
+    statusTimestamp = models.IntegerField(default=0)
     
 
 class JobProfile(ExportModelOperationsMixin('jobprofile'), models.Model):
@@ -61,15 +62,6 @@ class JobProfile(ExportModelOperationsMixin('jobprofile'), models.Model):
     exp1 = models.CharField(max_length=30)
     exp2 = models.CharField(max_length=30)
     calendar = models.CharField(max_length=5000)
-    candidatesCount = models.IntegerField(default=0)
-    discardedCount = models.IntegerField(default=0)
-    optedOutCount = models.IntegerField(default=0)
-    interestedCount = models.IntegerField(default=0)
-    shortlistedCount = models.IntegerField(default=0)
-    interviewScheduledCount = models.IntegerField(default=0)
-    interviewedCount = models.IntegerField(default=0)
-    rejectedCount = models.IntegerField(default=0)
-    onHoldCount = models.IntegerField(default=0)
     onlineProgExamCategory = models.TextField(default="none")
     onlineProgExamPendingCount = models.IntegerField(default=0)
     onlineProgExamDoneCount = models.IntegerField(default=0)

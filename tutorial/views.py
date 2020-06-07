@@ -15,8 +15,84 @@ from django.conf import settings
 import time
 import json
 
+import smtplib
+from email import encoders
+from email.message import Message
+from email.mime.audio import MIMEAudio
+from email.mime.base import MIMEBase
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import email.mime.text
+import email.mime.base
+import email.mime.multipart
+import smtplib
+import datetime as dt
+import icalendar
+import pytz
+
+def sendAppointment(subj, description):
+  # Timezone to use for our dates - change as needed
+  tz = pytz.timezone("Europe/London")
+  reminderHours = 1
+  startHour = 7
+  start = tz.localize(dt.datetime.combine(dt.datetime.now(), dt.time(startHour, 0, 0)))
+  cal = icalendar.Calendar()
+  cal.add('prodid', '-//My calendar application//example.com//')
+  cal.add('version', '2.0')
+  cal.add('method', "REQUEST")
+  event = icalendar.Event()
+  event.add('attendee', "rajeshwarp2002@gmail.com")
+  event.add('organizer', "dummyfortest.ganga@gmail.com")
+  event.add('status', "confirmed")
+  event.add('category', "Event")
+  event.add('summary', subj)
+
+  event.add('description', description)
+  event.add('location', "Room 101")
+  event.add('dtstart', start)
+  event.add('dtend', tz.localize(dt.datetime.combine(dt.datetime.now(), dt.time(startHour + 1, 0, 0))))
+  event.add('dtstamp', tz.localize(dt.datetime.combine(dt.datetime.now(), dt.time(6, 0, 0))))
+  event['uid'] = "ggg" #getUniqueId() # Generate some unique ID
+  event.add('priority', 5)
+  event.add('sequence', 1)
+  event.add('created', tz.localize(dt.datetime.now()))
+
+  alarm = icalendar.Alarm()
+  alarm.add("action", "DISPLAY")
+  alarm.add('description', "Reminder")
+  #alarm.add("trigger", dt.timedelta(hours=-reminderHours))
+  # The only way to convince Outlook to do it correctly
+  alarm.add("TRIGGER;RELATED=START", "-PT{0}H".format(reminderHours))
+  event.add_component(alarm)
+  cal.add_component(event)
+
+  msg = MIMEMultipart("alternative")
+
+  msg["Subject"] = subj
+  msg["From"] = "dummyfortest.ganga@gmail.com"
+  msg["To"] = "rajeshwarp2002@gmail.com"
+  msg["Content-class"] = "urn:content-classes:calendarmessage"
+
+  msg.attach(MIMEText(description))
+
+  filename = "invite.ics"
+  part = MIMEBase('text', "calendar", method="REQUEST", name=filename)
+  part.set_payload( cal.to_ical() )
+  encoders.encode_base64(part)
+  part.add_header('Content-Description', filename)
+  part.add_header("Content-class", "urn:content-classes:calendarmessage")
+  part.add_header("Filename", filename)
+  part.add_header("Path", filename)
+  msg.attach(part)
+  send_mail('Book Interview Slot', msg.as_string(), settings.EMAIL_HOST_USER, ["rajeshwarp2002@gmail.com"], fail_silently = False)
+  #s = smtplib.SMTP('localhost')
+  #s.sendmail(msg["From"], [msg["To"]], msg.as_string())
+  #s.quit()
+
 
 def jprofile(request):
+   sendAppointment("subs", "desc")
    return render(request, "jprofile.html", { 'slickhire_host_url': settings.SLICKHIRE_HOST_URL })
 @csrf_exempt
 def deleteJob(request):
@@ -310,7 +386,7 @@ def GetScore(percentage, threshold1, threshold2, value):
 def questions(request):
     if request.method == 'POST':
         data = models.Person.objects.only('questions').get(stringId__exact=request.POST['strId'])
-        data.status = "Received"
+        data.status = "Interested"
         data.nextReminderTimestamp = 0
         row = models.JobProfile.objects.get(jobId__exact=data.questions)
         score = 0
@@ -362,11 +438,14 @@ def questions(request):
             data.onlineProgLangIDE = "Java"
         else:
             print("Do Nothing")
-        data.save()
 
         row.save()
 
         promStats.interested_candidates_count.labels("1", data.questions).inc()
+        promStats.candidates_state_transition.labels("1", data.questions, "Subscribed").observe(
+					((int(time.time()) - data.statusTimestamp) / 3600))
+        data.statusTimestamp = int(time.time())
+        data.save()
 
         return HttpResponse("Data submitted successfuly" + request.POST['strId'])
     else:
@@ -403,6 +482,9 @@ def opt_out(request):
         candidate = models.Person.objects.only('questions').get(stringId__exact=request.POST['strId'])
         if candidate:
             promStats.optedout_candidates_count.labels("1", candidate.questions).inc()
+            subscribedStatusTime = (int(time.time()) - candidate.statusTimestamp) / 3600
+            print("Timestamp: ", subscribedStatusTime)
+            promStats.candidates_state_transition.labels("1", candidate.questions, "Subscribed").observe(subscribedStatusTime)
             candidate.delete()
             return HttpResponse("You have successfuly opted-out")
         else:
