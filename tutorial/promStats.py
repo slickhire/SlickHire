@@ -9,6 +9,10 @@ subscribed_candidates_count = Counter(	'slickhire_candidates_subscribed_count', 
 							'Total number of candidates handled by SlickHire', \
 							['company_name', 'job_profile'])
 
+registered_candidates_count = Counter(	'slickhire_candidates_registered_count', \
+							'Total number of candidates handled by SlickHire', \
+							['company_name', 'job_profile'])
+
 discarded_candidates_count = Counter(	'slickhire_candidates_discarded_count', \
 									'Total number of candidates discarded for a given job profile', \
 									['company_name', 'job_profile'])

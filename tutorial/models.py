@@ -45,6 +45,7 @@ class Person(ExportModelOperationsMixin('candidate'), models.Model):
     onlineAnswer5Time = models.IntegerField(default=0)
     calendar = models.CharField(max_length=30, default = "")
     statusTimestamp = models.IntegerField(default=0)
+    onlineTestTimePending = models.IntegerField(default=3600)
     
 
 class JobProfile(ExportModelOperationsMixin('jobprofile'), models.Model):

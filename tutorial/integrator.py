@@ -32,8 +32,6 @@ from django.template import Context
 def AddPerson(rparser, jobId):
 	print("latest",rparser['name'],rparser['email'],rparser['mobile_number'], rparser['skills'], jobId)
 	jobProfile = models.JobProfile.objects.get(jobId__exact=jobId)
-	promStats.subscribed_candidates_count.labels(company_name="1", job_profile="test").inc()
-	promStats.subscribed_candidates_count.labels(company_name="1", job_profile="test").inc()
 	p = models.Person(name=rparser['name'],  \
                       mobile=rparser['mobile_number'], \
                       stringId = get_random_string(length=30), \
@@ -80,6 +78,8 @@ def Extract_Files(newFile):
 			parser = resume_parser.ResumeParser(fileName)
 			print("Resume Parsing Done")
 			AddPerson(parser.get_extracted_data(), jobId)
+			promStats.subscribed_candidates_count.labels(company_name="1", job_profile=jobId).inc()
+			promStats.registered_candidates_count.labels(company_name="1", job_profile=jobId).inc()
 			
 def OnlineTestEval():
 	while 1:

@@ -638,6 +638,18 @@ def add_questions(request):
     else:        
         return render(request,"setOnline.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'type': "none"})
 
+def updateActivity(request):
+	print("Ganga",request.POST.get("id"), request.POST.get("totalTime"))
+	if request.method == 'POST':
+		data = models.Person.objects.only('questions').get(stringId__exact=request.POST['id'])		    
+		if int(request.POST.get("totalTime")) > data.onlineTestTimePending:
+			print("Here you go, i caught you buddy")
+			return HttpResponse(data.onlineTestTimePending)
+		else:
+			data.onlineTestTimePending = request.POST.get("totalTime")
+			data.save()
+			return HttpResponse(data.onlineTestTimePending)
+
 def printquestions(request):
         data = list(models.OnlineTestKeys.objects.values_list())    
         return JsonResponse({"draw": 1, "recordsTotal": 1, "recordsFiltered": 1, "data": data}, safe=False)

@@ -39,6 +39,7 @@ urlpatterns = [
     path('online', views.online),
     path('getJobIdList', views.getJobIdList),
     path('add_questions', views.add_questions),
+    path('updateActivity', views.updateActivity),
     path('printPersons', views.printPersons),
     path('printJobs', views.printjobs),
     path('printquestions',views.printquestions) 
