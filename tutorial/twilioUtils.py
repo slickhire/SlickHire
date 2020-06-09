@@ -42,11 +42,16 @@ def send_email(candidate_name,
           desc_link,
           input_link,
           optout_link,
-          to_mail
+          to_mail,
+          online
           ):
     try:
+        if online:
+            templateName = "onlineemail.html"
+        else:
+            templateName = "email.html"
         send_mail('Job Alert SlickHire',
-				  get_template('email.html').render(
+				  get_template(templateName).render(
                   {
                     'candidate_name': candidate_name,
                     'job_title': job_title,

@@ -23,6 +23,8 @@ from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from .twilioUtils import send_email
+from .twilioUtils import sendSMS
 import email.mime.text
 import email.mime.base
 import email.mime.multipart
@@ -439,14 +441,37 @@ def questions(request):
         else:
             print("Do Nothing")
 
+        if row.onlineProgExamCategory != "none":
+            onlinelink = settings.SLICKHIRE_HOST_URL + "/online?id=" + request.POST['strId']
+            optoutlink = settings.SLICKHIRE_HOST_URL + '/opt_out?id=' + request.POST['strId']
+            jobConfig = models.JobSettings.objects.get(companyId="1")
+            if jobConfig:
+                if jobConfig.smsEnabled:
+                    smsStatus = ''
+                    sendSMS(data.mobile, "xyz", onlinelink)
+                    print(smsStatus)
+                if jobConfig.emailEnabled:
+                    send_email(data.name, \
+                               row.designation, \
+                               "Moto Rockr", \
+                               "Dharwad", \
+                               "www.SlickHire.in", \
+                               "www.SlickHire.in/jobs", \
+                               onlinelink, \
+                               optoutlink, \
+                               data.email,\
+                               online=True)
+                    print("Online Mail Sent",onlinelink)
+             
         row.save()
 
         promStats.interested_candidates_count.labels("1", data.questions).inc()
         promStats.candidates_state_transition.labels("1", data.questions, "Subscribed").observe(
 					((int(time.time()) - data.statusTimestamp) / 3600))
         data.statusTimestamp = int(time.time())
+        
         data.save()
-
+        
         return HttpResponse("Data submitted successfuly" + request.POST['strId'])
     else:
         id = request.GET["id"]

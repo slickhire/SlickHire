@@ -62,7 +62,8 @@ def AddPerson(rparser, jobId):
                        "www.SlickHire.in/jobs", \
                        questions_link, \
                        optout_link, \
-                       p.email)
+                       p.email,\
+                       online=False)
 	p.status = "Subscribed"
 	p.statusTimestamp = int(time.time())
 	p.save()
@@ -197,7 +198,7 @@ def StartQuestionaireReminder():
 				if jobConfig.voiceEnabled:
 					makeVoiceCall(candidate.mobile, "kempa")
 				if jobConfig.emailEnabled:
-					send_email(candidate.name,"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, candidate.email)
+					send_email(candidate.name,"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, candidate.email, false)
 				candidate.reminderscount += 1
 				if candidate.reminderscount == jobConfig.remindersCount:
 					promStats.discarded_candidates_count.labels("1", candidate.questions).inc()

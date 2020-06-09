@@ -46,6 +46,7 @@
       success: function(resultData) { 
          if(localStorage.getItem("total_seconds") > resultData){
             localStorage.setItem("total_seconds", resultData);  
+            total_seconds = resultData;
          }
      }
 });
