@@ -42,7 +42,8 @@ urlpatterns = [
     path('updateActivity', views.updateActivity),
     path('printPersons', views.printPersons),
     path('printJobs', views.printjobs),
-    path('printquestions',views.printquestions) 
+    path('printquestions',views.printquestions),
+	path('pegStats', views.pegStats)
 ]
 
 StartProcesses()

@@ -71,6 +71,7 @@ def AddPerson(rparser, jobId):
 def Extract_Files(newFile):
 	print('Extract single file from ZIP', newFile)
 	jobId = newFile.split('/', -1)[-1].split('#', 1)[0]
+	numSubscribers = 0
 	with ZipFile(newFile, 'r') as zipObj:
 		listOfFileNames = zipObj.namelist()
 		for fileName in listOfFileNames:
@@ -79,7 +80,17 @@ def Extract_Files(newFile):
 			parser = resume_parser.ResumeParser(fileName)
 			print("Resume Parsing Done")
 			AddPerson(parser.get_extracted_data(), jobId)
-			promStats.candidates_count.labels(company_name="1", job_profile=jobId, candidate_state='Subscribed').inc()
+			numSubscribers += 1
+	requests.post("http://127.0.0.1:80/pegStats", \
+					data=\
+					{
+						'csrfmiddlewaretoken': 'HelloWorld', \
+						'company_name': '1', \
+						'job_profile': jobId, \
+						'candidate_state': 'Subscribed', \
+						'stat_value': numSubscribers, \
+						'candidate_previous_state': '' \
+					})
 			
 def OnlineTestEval():
 	while 1:
@@ -197,12 +208,22 @@ def StartQuestionaireReminder():
 				if jobConfig.voiceEnabled:
 					makeVoiceCall(candidate.mobile, "kempa")
 				if jobConfig.emailEnabled:
-					send_email(candidate.name,"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, candidate.email, false)
+					send_email(candidate.name,"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, candidate.email, False)
 				candidate.reminderscount += 1
 				if candidate.reminderscount == jobConfig.remindersCount:
 					promStats.candidates_count.labels(company_name="1", job_profile=candidate.questions, candidate_state='Discarded').inc()
 					promStats.candidates_state_transition.labels("1", candidate.questions, "Subscribed").observe(\
 											((int(time.time()) - candidate.statusTimestamp) / 3600))
+					requests.post("http://127.0.0.1:80/pegStats", \
+								data=\
+								{
+									'company_name': '1', \
+									'job_profile': candidate.questions, \
+									'candidate_state': 'Discarded', \
+									'stat_value': 1, \
+									'candidate_previous_state': 'Subscribed', \
+									'candidate_previous_state_time': currentTimestamp \
+								})
 					candidate.delete()
 				else:
 					candidate.nextReminderTimestamp = currentTimestamp + 86400

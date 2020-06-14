@@ -687,3 +687,19 @@ def printjobs(request):
     data = list(models.JobProfile.objects.values_list())
     return  JsonResponse({"draw": 1, "recordsTotal": 1, "recordsFiltered": 1, "data": data}, safe=False)
 # Create your views here.
+
+@csrf_exempt
+def pegStats(request):
+	print("Pegging Stats")
+	promStats.candidates_count.labels( \
+									  request.POST['company_name'], \
+									  request.POST['job_profile'], \
+									  request.POST['candidate_state']).inc(int(request.POST['stat_value']))
+	candPreviousState = request.POST['candidate_previous_state']
+	if candPreviousState != "":
+		promStats.candidates_state_transition.labels( \
+									  request.POST['company_name'], \
+									  request.POST['job_profile'], \
+									  request.POST['candidate_previous_state']) \
+									  .observe(((int(time.time()) - int(request.POST['candidate_previous_state_time'])) / 3600))
+	return HttpResponse("Success")
