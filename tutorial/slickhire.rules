@@ -1,24 +1,8 @@
 groups:
 - name: slickhire.rules
   rules:
-  - record: slickhire_candidates_subscribed_total
-    expr: sum(slickhire_candidates_subscribed_count_total) without (job, instance)
-  - record: slickhire_candidates_interested_total
-    expr: sum(slickhire_candidates_interested_count_total) without (job, instance)
-  - record: slickhire_candidates_discarded_total
-    expr: sum(slickhire_candidates_discarded_count_total) without (job, instance)
-  - record: slickhire_candidates_optedout_total
-    expr: sum(slickhire_candidates_optedout_count_total) without (job, instance)
-  - record: slickhire_candidates_hired_total
-    expr: sum(slickhire_candidates_hired_count_total) without (job, instance)
-  - record: slickhire_candidates_interviews_scheduled_total
-    expr: sum(slickhire_candidates_interviews_scheduled_count_total) without (job, instance)
-  - record: slickhire_candidates_interviewed_total
-    expr: sum(slickhire_candidates_interviewed_count_total) without (job, instance)
-  - record: slickhire_candidates_rejected_total
-    expr: sum(slickhire_candidates_rejected_count_total) without (job, instance)
-  - record: slickhire_candidates_onhold_total
-    expr: sum(slickhire_candidates_onhold_count_total) without (job, instance)
+  - record: slickhire_candidates_total
+    expr: sum(slickhire_candidates_count_total) without (job, instance)
   - record: slickhire_candidates_state_transition_count_total
     expr: sum(slickhire_candidates_state_transition_count) without (job, instance)
   - record: slickhire_candidates_state_transition_sum_total
