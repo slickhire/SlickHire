@@ -465,7 +465,7 @@ def questions(request):
              
         row.save()
 
-        promStats.interested_candidates_count.labels("1", data.questions).inc()
+        promStats.candidates_count.labels("1", data.questions, "Interested").inc()
         promStats.candidates_state_transition.labels("1", data.questions, "Subscribed").observe(
 					((int(time.time()) - data.statusTimestamp) / 3600))
         data.statusTimestamp = int(time.time())
@@ -506,7 +506,7 @@ def opt_out(request):
         print('Receieved POST opt-out request for: ', request.POST["strId"])
         candidate = models.Person.objects.only('questions').get(stringId__exact=request.POST['strId'])
         if candidate:
-            promStats.optedout_candidates_count.labels("1", candidate.questions).inc()
+            promStats.candidates_count.labels("1", candidate.questions, "OptedOut").inc()
             subscribedStatusTime = (int(time.time()) - candidate.statusTimestamp) / 3600
             print("Timestamp: ", subscribedStatusTime)
             promStats.candidates_state_transition.labels("1", candidate.questions, "Subscribed").observe(subscribedStatusTime)

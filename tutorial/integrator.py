@@ -79,8 +79,7 @@ def Extract_Files(newFile):
 			parser = resume_parser.ResumeParser(fileName)
 			print("Resume Parsing Done")
 			AddPerson(parser.get_extracted_data(), jobId)
-			promStats.subscribed_candidates_count.labels(company_name="1", job_profile=jobId).inc()
-			promStats.registered_candidates_count.labels(company_name="1", job_profile=jobId).inc()
+			promStats.candidates_count.labels(company_name="1", job_profile=jobId, candidate_state='Subscribed').inc()
 			
 def OnlineTestEval():
 	while 1:
@@ -201,7 +200,7 @@ def StartQuestionaireReminder():
 					send_email(candidate.name,"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, candidate.email, false)
 				candidate.reminderscount += 1
 				if candidate.reminderscount == jobConfig.remindersCount:
-					promStats.discarded_candidates_count.labels("1", candidate.questions).inc()
+					promStats.candidates_count.labels(company_name="1", job_profile=candidate.questions, candidate_state='Discarded').inc()
 					promStats.candidates_state_transition.labels("1", candidate.questions, "Subscribed").observe(\
 											((int(time.time()) - candidate.statusTimestamp) / 3600))
 					candidate.delete()
