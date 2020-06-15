@@ -61,6 +61,7 @@ class JobProfile(ExportModelOperationsMixin('jobprofile'), models.Model):
     notice1 = models.CharField(max_length=30)
     onlineProgExamCategory = models.TextField(default="none")
     onlinePrefProgLang = models.TextField(default="any")
+    onlinePassPercentage = models.IntegerField(default=100)
     notice2 = models.CharField(max_length=30)
     exp1 = models.CharField(max_length=30)
     exp2 = models.CharField(max_length=30)

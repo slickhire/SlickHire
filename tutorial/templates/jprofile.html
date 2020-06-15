@@ -17,11 +17,12 @@
                 <th>Notice Period</th>
                 <th>Skills</th>
 		<th>Emails</th>
-		<th>Online Test Category</th>
-		<th>Preferred Prog Language</th>
 		<th>Cal</th>
 		<th>Edi</th>
 		<th>Del</th>
+		<th>Online Test Category</th>
+		<th>Preferred Prog Language</th>
+		<th>Pass Percentage</th>
         </tr>
         </thead>
 </table>
@@ -101,6 +102,11 @@
   <input type="text" class="form-control input-sm" id="prefProgLang">
   <p></p>
          </div>
+<div class="form-group form-inline">
+  <label>Online Test Pass Percentage: &nbsp</label>
+  <input type="text" class="form-control input-sm" id="passPercentage">
+  <p></p>
+         </div>
 
       </div>
       <div class="modal-footer">
@@ -126,6 +132,7 @@ $.fn.dataTable.ext.buttons.alert = {
             $('#emails').val("");
             $('#onlineTestCategory').val("");
             $('#prefProgLang').val("");
+            $('#passPercentage').val("");
 
 $('#exampleModal').modal('show');
     }};
@@ -149,6 +156,7 @@ $('#add').click(function(){
 	    $('#emails').val("");
 	    $('#onlineTestCategory').val("");
 	    $('#prefProgLang').val("");
+	    $('#passPercentage').val("");
 
 $('#exampleModal').modal('show');
 });
@@ -165,6 +173,7 @@ $('#save').click(function(){
        emails: $('#emails').val(),
        onlineProgExamCategory: $('#onlineTestCategory').val(),
        prefProgLang: $('#prefProgLang').val(),
+       passPercentage: $('#passPercentage').val(),
     },
     function(data,status){
         $.alert({
@@ -233,6 +242,7 @@ $('#example tbody').on( 'click', 'button', function () {
 	    $('#emails').val(data[6]);
 	    $('#onlineTestCategory').val(data[7]);
 	    $('#prefProgLang').val(data[8]);
+	    $('#passPercentage').val(data[9]);
         $('#exampleModal').modal('show');
 
 	}
