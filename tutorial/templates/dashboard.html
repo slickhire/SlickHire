@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+class JobProfile {
+  constructor() {
+    this.subscribed = 0;
+    this.interested = 0;
+    this.discarded = 0;
+    this.optedOut = 0;
+    this.interviewScheduled = 0;
+    this.pendingInterviewSchedule = 0;
+    this.interviewed = 0;
+    this.rejected = 0;
+    this.hired = 0;
+    this.onHold = 0;
+  }
+}
+    var jobProfileTable = {};
+
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(getData);
+
+      function drawChart(stats, title, num) {
+       console.log(stats.discarded);
+
+        var data = google.visualization.arrayToDataTable([
+          ['Task', 'Hours per Day'],
+          ['Subscribed',     parseInt(stats.subscribed)],
+          ['Interested',      parseInt(stats.interested)],
+          ['Discarded',  parseInt(stats.discarded)],
+          ['OptedOut', parseInt(stats.optedOut)],
+          ['InterviewScheduled',    parseInt(stats.InterviewScheduled)],
+          ['PendingInterviewSchedule',     parseInt(stats.pendingInterviewSchedule)],
+          ['Interviewed',      parseInt(stats.interviewed)],
+          ['Rejected',  parseInt(stats.rejected)],
+          ['Hired', parseInt(stats.hired)],
+          ['OnHold',    parseInt(stats.onHold)]
+        ]);
+
+        var options = {
+          title:title 
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('piechart' + num));
+
+        chart.draw(data, options);
+      }
+function getData(x, jobId, statType)
+{
+    jobProfileTable = {};
+    if (x === undefined) {
+             x = "30d";
+         }
+    if (jobId === undefined) {
+        jobId = "";
+    }
+    if (statType === undefined) {
+        statType = "slickhire_candidates_total";
+    }
+
+var xmlhttp = new XMLHttpRequest();
+xmlhttp.onreadystatechange = function() {
+  if (this.readyState == 4 && this.status == 200) {
+    var myObj = JSON.parse(this.responseText);
+    
+    for(var i = 0; i < myObj.data.result.length; i++) {
+        var jobProfile;
+        if (myObj.data.result[i].metric.job_profile in jobProfileTable)
+        {
+            jobProfile = jobProfileTable[myObj.data.result[i].metric.job_profile]
+        }
+        else
+        {
+            jobProfile = new JobProfile();
+            jobProfileTable[myObj.data.result[i].metric.job_profile] = jobProfile;
+        }
+        switch (myObj.data.result[i].metric.candidate_state)
+        {
+            case "Subscribed":
+                jobProfile.subscribed = myObj.data.result[i].value[1];
+                break;
+            case "Interested":
+                jobProfile.interested = myObj.data.result[i].value[1];
+                break;
+            case "Discarded":
+                jobProfile.discarded = myObj.data.result[i].value[1];
+                break;
+            case "OptedOut":
+                jobProfile.optedOut = myObj.data.result[i].value[1];
+                break;
+            case "InterviewScheduled":
+                jobProfile.interviewScheduled = myObj.data.result[i].value[1];
+                break;
+            case "PendingInterviewSchedule":
+                jobProfile.pendingInterviewSchedule = myObj.data.result[i].value[1];
+                break;
+            case "Interviewed":
+                jobProfile.interviewed = myObj.data.result[i].value[1];
+                break;
+            case "Rejected":
+                jobProfile.rejected = myObj.data.result[i].value[1]
+                break;
+            case "Hired":
+                jobProfile.hired = myObj.data.result[i].value[1];
+                break;
+            case "OnHold":
+                jobProfile.onHold = myObj.data.result[i].value[1];
+                break;
+            default:
+                break;
+
+        }
+    }
+var num = 0;
+    for (var key in jobProfileTable) {
+    // check if the property/key is defined in the object itself, not in parent
+        if (jobProfileTable.hasOwnProperty(key) && (jobId == "" || jobId == key)) { 
+            ++num;         
+            drawChart(jobProfileTable[key], key, num) 
+            console.log(key, jobId, statType, jobProfileTable[key]);
+            if (jobId == key)
+            {
+            break;
+           }
+        }
+    }
+}
+};
+xmlhttp.open("GET", "http://ec2-3-17-109-85.us-east-2.compute.amazonaws.com:9090/api/v1/query?query=avg_over_time(" + statType + "[" + x + "])", true);
+xmlhttp.send();
+
+}
+function loadStats()
+{
+var charts = document.getElementsByClassName("charts");
+          for (i=0; i< charts.length; i++) {
+            console.log("charts.length", charts.length, charts, charts[i]);
+            charts[i].innerHTML = "";
+          }
+var e = document.getElementById("jobId");
+var jobId = e.options[e.selectedIndex].value;
+const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+const firstDate = new Date($('#from').val());
+const secondDate = new Date($('#to').val()); 
+var e1 = document.getElementById("statType");
+var statType = e1.options[e1.selectedIndex].value;
+const diffDays = Math.round(Math.abs((firstDate - secondDate) / oneDay));
+getData(diffDays + "d", jobId, statType);
+}
+    </script>
+</head>
+<body onload="myFunction()">
+
+<div class="container">
+<div class="row">
+    <div class="col-md-2  col-lg-2">
+<input class="control-label form-control"   type="date" id="from" name="from">
+</div>
+    <div class="col-md-2 col-lg-2">
+<input class="control-label form-control"  type="date" id="to" name="to">
+</div>
+    <div class="col-md-2  col-lg-2">
+<div class="form-group">
+  <select class="form-control" id="jobId">
+    <option value="">Select JobId</option> 
+    {% for obj in jobIdList %}
+      <option value="{{ obj }}" id = {{ obj }}> {{ obj }}</option>
+      {% endfor %}
+
+  </select>
+</div>
+</div>
+    <div class="col-md-2  col-lg-2">
+<div class="form-group">
+  <select class="form-control" id="statType">
+    <option value="">Select StatType</option>
+    <option value="slickhire_candidates_total">No. candidates per State</option>
+    <option value="slickhire_candidates_state_transition_sum_total">Time spent in each State by Candidates</option>
+
+  </select>
+</div>
+</div>
+
+    <div class="col-md-2 col-lg-2">
+<button type="button" class="btn btn-primary" id = "submit1">Submit</button>
+</div>
+
+
+</div>
+  </div>
+
+<div class="row">
+    <div class="col-md-6  col-lg-6">
+<div id="piechart1" class="charts"></div>
+</div>
+ <div class="col-md-6  col-lg-6">
+<div id="piechart2" class="charts"></div>
+</div>
+</div>
+<div class="row">
+    <div class="col-md-6  col-lg-6">
+<div id="piechart3" class="charts"></div>
+</div>
+ <div class="col-md-6  col-lg-6">
+<div id="piechart4" class="charts"></div>
+</div>
+</div>
+<div class="row">
+    <div class="col-md-6  col-lg-6">
+<div id="piechart5" class="charts"></div>
+</div>
+ <div class="col-md-6  col-lg-6">
+<div id="piechart6" class="charts"></div>
+</div>
+</div>
+
+</div>
+<div id="piechart3" style="width: 900px; height: 500px;"></div>
+<div id="piechart4" style="width: 1000px; height: 500px;"></div>
+
+<div id="piechart5" style="width: 900px; height: 500px;"></div>
+<div id="piechart6" style="width: 1000px; height: 500px;"></div>
+
+
+</body>
+<script>
+function myFunction() {
+document.getElementById("from").valueAsDate = new Date()
+document.getElementById("to").valueAsDate = new Date()
+
+
+
+
+}
+document.getElementById("submit1").addEventListener("click", function(event){
+  event.preventDefault()
+  loadStats();
+});
+</script>
+
+</html>
+

@@ -22,6 +22,7 @@ urlpatterns = [
     path('index/data/', views.data),
     path('upload/', views.upload),
     path('index/send_link/', views.sendLink),
+    path('dashboard', views.dashboard),
     path('getLink', views.getLink),
     path('getLink/data/', views.getLinkData),
     path('getLink/send_interview_link/', views.sendInterviewLink),

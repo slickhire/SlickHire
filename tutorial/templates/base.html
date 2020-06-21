@@ -40,18 +40,18 @@ td {
 	<script src="https://cdn.datatables.net/select/1.3.1/js/dataTables.select.min.js"></script>
 	<script src="https://cdn.datatables.net/buttons/1.6.1/js/dataTables.buttons.min.js"></script>
 	<script src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js"></script>
-	<script src="https://cdn.datatables.net/responsive/2.0.2/css/responsive.dataTables.min.css"></script>
+
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.50.2/codemirror.min.js"></script>
         <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.50.2/codemirror.min.css" rel="stylesheet"/>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.50.2/mode/clike/clike.min.js"></script>
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.50.2/theme/dracula.min.css" rel="stylesheet"/>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.50.2/addon/edit/closetag.min.js"></script>
 <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.min.css">
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
 <style>
 table.dataTable thead .sorting,
 table.dataTable thead .sorting_asc,
@@ -76,7 +76,7 @@ table.dataTable thead .sorting_desc {
               <a class="mdl-navigation__link mdl-typography--text-uppercase" href={{ slickhire_host_url | add:"/index/" }}>Status</a>
               <a class="mdl-navigation__link mdl-typography--text-uppercase" href={{ slickhire_host_url | add:"/jprofile" }}>Job Profile</a>
               <a class="mdl-navigation__link mdl-typography--text-uppercase" href={{ slickhire_host_url | add:"/upload" }}>Upload Resumes</a>
-	      	  <a class="mdl-navigation__link mdl-typography--text-uppercase" href="">Dashboard</a>
+	      	  <a class="mdl-navigation__link mdl-typography--text-uppercase" href={{ slickhire_host_url | add:"/dashboard" }}>Dashboard</a>
               <a class="mdl-navigation__link mdl-typography--text-uppercase" href={{ slickhire_host_url | add:"/settings" }}>Settings</a>
             </nav>
           </div>
@@ -94,7 +94,7 @@ table.dataTable thead .sorting_desc {
               <a class="mdl-navigation__link mdl-typography--text-uppercase" href={{ slickhire_host_url | add:"/index/" }}>Status</a>
               <a class="mdl-navigation__link mdl-typography--text-uppercase" href={{ slickhire_host_url | add:"/jprofile" }}>Job Profile</a>
               <a class="mdl-navigation__link mdl-typography--text-uppercase" href={{ slickhire_host_url | add:"/upload" }}>Upload Resumes</a>
-	      	  <a class="mdl-navigation__link mdl-typography--text-uppercase" href="">Dashboard</a>
+	      	  <a class="mdl-navigation__link mdl-typography--text-uppercase" href={{ slickhire_host_url | add:"/upload" }}>Dashboard</a>
               <a class="mdl-navigation__link mdl-typography--text-uppercase" href={{ slickhire_host_url | add:"/settings" }}>Settings</a>
 
 	  <div class="android-drawer-separator"></div>

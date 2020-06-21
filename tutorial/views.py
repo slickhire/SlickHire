@@ -25,76 +25,13 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from .twilioUtils import send_email
 from .twilioUtils import sendSMS
-import email.mime.text
-import email.mime.base
-import email.mime.multipart
-import smtplib
-import datetime as dt
-import icalendar
-import pytz
 
-def sendAppointment(subj, description):
-  # Timezone to use for our dates - change as needed
-  tz = pytz.timezone("Europe/London")
-  reminderHours = 1
-  startHour = 7
-  start = tz.localize(dt.datetime.combine(dt.datetime.now(), dt.time(startHour, 0, 0)))
-  cal = icalendar.Calendar()
-  cal.add('prodid', '-//My calendar application//example.com//')
-  cal.add('version', '2.0')
-  cal.add('method', "REQUEST")
-  event = icalendar.Event()
-  event.add('attendee', "rajeshwarp2002@gmail.com")
-  event.add('organizer', "dummyfortest.ganga@gmail.com")
-  event.add('status', "confirmed")
-  event.add('category', "Event")
-  event.add('summary', subj)
-
-  event.add('description', description)
-  event.add('location', "Room 101")
-  event.add('dtstart', start)
-  event.add('dtend', tz.localize(dt.datetime.combine(dt.datetime.now(), dt.time(startHour + 1, 0, 0))))
-  event.add('dtstamp', tz.localize(dt.datetime.combine(dt.datetime.now(), dt.time(6, 0, 0))))
-  event['uid'] = "ggg" #getUniqueId() # Generate some unique ID
-  event.add('priority', 5)
-  event.add('sequence', 1)
-  event.add('created', tz.localize(dt.datetime.now()))
-
-  alarm = icalendar.Alarm()
-  alarm.add("action", "DISPLAY")
-  alarm.add('description', "Reminder")
-  #alarm.add("trigger", dt.timedelta(hours=-reminderHours))
-  # The only way to convince Outlook to do it correctly
-  alarm.add("TRIGGER;RELATED=START", "-PT{0}H".format(reminderHours))
-  event.add_component(alarm)
-  cal.add_component(event)
-
-  msg = MIMEMultipart("alternative")
-
-  msg["Subject"] = subj
-  msg["From"] = "dummyfortest.ganga@gmail.com"
-  msg["To"] = "rajeshwarp2002@gmail.com"
-  msg["Content-class"] = "urn:content-classes:calendarmessage"
-
-  msg.attach(MIMEText(description))
-
-  filename = "invite.ics"
-  part = MIMEBase('text', "calendar", method="REQUEST", name=filename)
-  part.set_payload( cal.to_ical() )
-  encoders.encode_base64(part)
-  part.add_header('Content-Description', filename)
-  part.add_header("Content-class", "urn:content-classes:calendarmessage")
-  part.add_header("Filename", filename)
-  part.add_header("Path", filename)
-  msg.attach(part)
-  send_mail('Book Interview Slot', msg.as_string(), settings.EMAIL_HOST_USER, ["rajeshwarp2002@gmail.com"], fail_silently = False)
-  #s = smtplib.SMTP('localhost')
-  #s.sendmail(msg["From"], [msg["To"]], msg.as_string())
-  #s.quit()
-
+def dashboard(request):
+    if request.method == 'GET':
+        jobIdList = list(models.JobProfile.objects.order_by().values_list('jobId', flat=True).distinct())
+        return render(request, "dashboard.html", { 'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'jobIdList':jobIdList })
 
 def jprofile(request):
-   sendAppointment("subs", "desc")
    return render(request, "jprofile.html", { 'slickhire_host_url': settings.SLICKHIRE_HOST_URL })
 @csrf_exempt
 def deleteJob(request):
@@ -312,7 +249,7 @@ def saveJob(request):
 		notice.append(request.POST['notice'])
 		notice.append(request.POST['notice'])
 
-	job = models.JobProfile(jobId=request.POST['jobid'], designation=request.POST['designation'], experience = request.POST['exp'], salary = request.POST['salary'], notice = request.POST['notice'], skills = request.POST['skills'], salary1 = salary[0], salary2 = salary[1], exp1 = exp[0], exp2 = exp[1], notice1 = notice[0], notice2 = notice[1], emails=request.POST['emails'], onlineProgExamCategory=request.POST['onlineProgExamCategory'], onlinePrefProgLang=request.POST['prefProgLang'])
+	job = models.JobProfile(jobId=request.POST['jobid'], designation=request.POST['designation'], experience = request.POST['exp'], salary = request.POST['salary'], notice = request.POST['notice'], skills = request.POST['skills'], salary1 = salary[0], salary2 = salary[1], exp1 = exp[0], exp2 = exp[1], notice1 = notice[0], notice2 = notice[1], emails=request.POST['emails'], onlineProgExamCategory=request.POST['onlineProgExamCategory'], onlinePrefProgLang=request.POST['prefProgLang'], onlinePassPercentage=request.POST['passPercentage'])
 	if request.POST['onlineProgExamCategory'] != "none":
 		onlineques = models.OnlineTestKeys.objects.filter(category=request.POST['onlineProgExamCategory'])
 		random_index = []
