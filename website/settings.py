@@ -27,7 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-SLICKHIRE_HOST_URL = 'http://ec2-18-216-91-110.us-east-2.compute.amazonaws.com'
+SLICKHIRE_HOST_URL = 'http://147.139.32.102'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True

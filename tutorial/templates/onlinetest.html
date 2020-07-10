@@ -40,7 +40,7 @@
       $('input[name=strId]').val();     
       var saveData = $.ajax({
       type: 'POST',
-      url: "http://ec2-3-17-109-85.us-east-2.compute.amazonaws.com/updateActivity",
+      url: "http://147.139.32.102/updateActivity",
       data: {id : $('input[name=strId]').val() , totalTime : localStorage.getItem("total_seconds") , 'csrfmiddlewaretoken': '{{ csrf_token }}'}, 
       dataType: "text",
       success: function(resultData) { 

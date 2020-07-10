@@ -28,6 +28,7 @@ from django.core.mail import send_mail,EmailMessage
 from django.template import Context
 from django.template.loader import render_to_string, get_template
 from django.template import Context
+from django.core.exceptions import ObjectDoesNotExist
 
 def AddPerson(rparser, jobId):
 	print("latest",rparser['name'],rparser['email'],rparser['mobile_number'], rparser['skills'], jobId)
@@ -59,7 +60,7 @@ def AddPerson(rparser, jobId):
                        "Moto Rockr", \
                        "Dharwad", \
                        "www.SlickHire.in", \
-                       "www.SlickHire.in/jobs", \
+                       "www.slickhire.in/jobs", \
                        questions_link, \
                        optout_link, \
                        p.email,\
@@ -91,77 +92,80 @@ def Extract_Files(newFile):
 						'stat_value': numSubscribers, \
 						'candidate_previous_state': '' \
 					})
-			
+
+
 def OnlineTestEval():
-	while 1:
-		print("Online Processing")
-		if  models.Person.objects.filter(onlinetesteval=0).exists():
-			onlineeval = models.Person.objects.filter(onlinetesteval=0)
-			score = 0
-			for eval in onlineeval:
-				print("processing", eval.name)
-				try:
-					q1 = models.OnlineTestKeys.objects.get(qid=eval.question1)
-					q2 = models.OnlineTestKeys.objects.get(qid=eval.question2)
-					q3 = models.OnlineTestKeys.objects.get(qid=eval.question3)
-					q4 = models.OnlineTestKeys.objects.get(qid=eval.question4)
-					q5 = models.OnlineTestKeys.objects.get(qid=eval.question5)
-				except Content.DoesNotExist:
-					break	 
-				data = ([[q1, eval.answer1],[q2, eval.answer2],[q3, eval.answer3],[q4, eval.answer4],[q5, eval.answer5]])
-				try:
-					for ques, ans in data:
-						if ques.type:
-							if ques.answer == ans:
-								score += 10
-						else:
-							tests = [ques.test1, ques.test2, ques.test3, ques.test4, ques.test5]
-							for test in tests:
-								if test != "null":
-									url = 'https://ide.geeksforgeeks.org/main.php'
-									data = {'lang': eval.onlineProgLangIDE, 'code': ans, 'input': test.split(';', 1)[0], 'save': 'false'}
-									headers= {'origin':'https://ide.geeksforgeeks.org/'}
-									response = requests.post(url, data , headers=headers)
-									print(response.status_code)
-									print(response.text)
-									jsonRes = response.json()
-									print(jsonRes['sid'])
-									sid = jsonRes['sid']
-									# After 10 retries , we will declare that IDE has some issues and retry later.
-									retry = 0
-									while True:
-										data = {'requestType': "fetchResults", 'sid' : sid } 
-										response = requests.post('https://ide.geeksforgeeks.org/submissionResult.php', data , headers=headers)
-										print(response.status_code)
-										print(response.text)
-										outputres = response.json()
-										retry += 1
-										if  outputres['status'] == 'SUCCESS' or retry == 100:        
-											break
-									# Have an error counter to know that ide is misbehaving
-									if retry == 100:
-										break
-									if outputres['compResult'] == 'S' and test.split(';', 1)[1] == outputres['output']:
-										score += 10
-									# Additonally have a stat per Person to know how many programs resuled in compilation errors
-									if outputres['compResult'] != 'S':
-										eval.onlinetestcompileerrors += 1                        
-									print(test.split(';', 1)[0])
-									print(test.split(';', 1)[1])
-									print(outputres['output'])
-					if retry == 100:
-					    break
-					eval.onlinetestscore = score
-					eval.onlinetesteval = 1
-					eval.save()
-					break
-				except KeyError:
-					# Error counter to know that response from IDE is not proper.
-					eval.onlinetestscore = 0
-					eval.onlinetesteval = 0
-					eval.save()
-		time.sleep(8)
-		    
+    while 1:
+        try:
+            if  models.Person.objects.filter(onlinetesteval=0).exists():
+                onlineeval = models.Person.objects.filter(onlinetesteval=0)
+                score = 0
+                for eval in onlineeval:
+                    print("processing", eval.name)
+                    try:
+                        q1 = models.OnlineTestKeys.objects.get(qid=eval.question1)
+                        q2 = models.OnlineTestKeys.objects.get(qid=eval.question2)
+                        q3 = models.OnlineTestKeys.objects.get(qid=eval.question3)
+                        q4 = models.OnlineTestKeys.objects.get(qid=eval.question4)
+                        q5 = models.OnlineTestKeys.objects.get(qid=eval.question5)
+                    except Content.DoesNotExist:
+                        break	 
+                    data = ([[q1, eval.answer1],[q2, eval.answer2],[q3, eval.answer3],[q4, eval.answer4],[q5, eval.answer5]])
+                    try:
+                        for ques, ans in data:
+                            if ques.type:
+                                if ques.answer == ans:
+                                    score += 10
+                            else:
+                                tests = [ques.test1, ques.test2, ques.test3, ques.test4, ques.test5]
+                                for test in tests:
+                                    if test != "null":
+                                        url = 'https://ide.geeksforgeeks.org/main.php'
+                                        data = {'lang': eval.onlineProgLangIDE, 'code': ans, 'input': test.split(';', 1)[0], 'save': 'false'}
+                                        headers= {'origin':'https://ide.geeksforgeeks.org/'}
+                                        response = requests.post(url, data , headers=headers)
+                                        print(response.status_code)
+                                        print(response.text)
+                                        jsonRes = response.json()
+                                        print(jsonRes['sid'])
+                                        sid = jsonRes['sid']
+                                        # After 10 retries , we will declare that IDE has some issues and retry later.
+                                        retry = 0
+                                        while True:
+                                            data = {'requestType': "fetchResults", 'sid' : sid } 
+                                            response = requests.post('https://ide.geeksforgeeks.org/submissionResult.php', data , headers=headers)
+                                            print(response.status_code)
+                                            print(response.text)
+                                            outputres = response.json()
+                                            retry += 1
+                                            if  outputres['status'] == 'SUCCESS' or retry == 100:        
+                                                break
+                                        # Have an error counter to know that ide is misbehaving
+                                        if retry == 100:
+                                            break
+                                        if outputres['compResult'] == 'S' and test.split(';', 1)[1] == outputres['output']:
+                                            score += 10
+                                        # Additonally have a stat per Person to know how many programs resuled in compilation errors
+                                        if outputres['compResult'] != 'S':
+                                            eval.onlinetestcompileerrors += 1                        
+                                        print(test.split(';', 1)[0])
+                                        print(test.split(';', 1)[1])
+                                        print(outputres['output'])
+                        if retry == 100:
+                            break
+                        eval.onlinetestscore = score
+                        eval.onlinetesteval = 1
+                        eval.save()
+                        break
+                    except KeyError:
+                        # Error counter to know that response from IDE is not proper.
+                        eval.onlinetestscore = 0
+                        eval.onlinetesteval = 0
+                        eval.save()
+            time.sleep(8)
+        except ObjectDoesNotExist:
+            time.sleep(8)
+
 def ResumeHandler():
 	while 1:
 		print("Checking for any uploaded files")
@@ -182,50 +186,51 @@ def isReminderAllowedAtThisTime():
     else:
         return False
 
+
 def StartQuestionaireReminder():
-	while 1:
-		print("Reminder Started at ", time.time())
-		
-		if not isReminderAllowedAtThisTime():
-			return
-		
-		jobConfig = models.JobSettings.objects.get(companyId="1")
-		if not jobConfig:
-			return
-		
-		if jobConfig.remindersCount == 0:
-			return
-		
-		currentTimestamp = int(time.time())
-		
-		candidates = models.Person.objects.all()
-		for candidate in candidates:
-			if candidate.status != 'Interested' and currentTimestamp >= candidate.nextReminderTimestamp:
-				candQuestionsUrl = settings.SLICKHIRE_HOST_URL + "/questions?id={}".format(candidate.stringId)
-				optout_link = settings.SLICKHIRE_HOST_URL + '/opt_out?id=' + candidate.stringId
-				if jobConfig.smsEnabled:
-					sendSMS(candidate.mobile, "xyz", id)
-				if jobConfig.voiceEnabled:
-					makeVoiceCall(candidate.mobile, "kempa")
-				if jobConfig.emailEnabled:
-					send_email(candidate.name,"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, candidate.email, False)
-				candidate.reminderscount += 1
-				if candidate.reminderscount == jobConfig.remindersCount:
-					promStats.candidates_count.labels(company_name="1", job_profile=candidate.questions, candidate_state='Discarded').inc()
-					promStats.candidates_state_transition.labels("1", candidate.questions, "Subscribed").observe(\
-											((int(time.time()) - candidate.statusTimestamp) / 3600))
-					requests.post("http://127.0.0.1:80/pegStats", \
-								data=\
-								{
-									'company_name': '1', \
-									'job_profile': candidate.questions, \
-									'candidate_state': 'Discarded', \
-									'stat_value': 1, \
-									'candidate_previous_state': 'Subscribed', \
-									'candidate_previous_state_time': currentTimestamp \
-								})
-					candidate.delete()
-				else:
-					candidate.nextReminderTimestamp = currentTimestamp + 86400
-					candidate.save()
-		time.sleep(10)
+       while 1:
+               print("Reminder Started at ", time.time())
+               
+               if not isReminderAllowedAtThisTime():
+                       return
+               
+               jobConfig = models.JobSettings.objects.get(companyId="1")
+               if not jobConfig:
+                       return
+               
+               if jobConfig.remindersCount == 0:
+                       return
+               
+               currentTimestamp = int(time.time())
+               
+               candidates = models.Person.objects.all()
+               for candidate in candidates:
+                       if candidate.status != 'Interested' and currentTimestamp >= candidate.nextReminderTimestamp:
+                               candQuestionsUrl = settings.SLICKHIRE_HOST_URL + "/questions?id={}".format(candidate.stringId)
+                               optout_link = settings.SLICKHIRE_HOST_URL + '/opt_out?id=' + candidate.stringId
+                               if jobConfig.smsEnabled:
+                                       sendSMS(candidate.mobile, "xyz", id)
+                               if jobConfig.voiceEnabled:
+                                       makeVoiceCall(candidate.mobile, "kempa")
+                               if jobConfig.emailEnabled:
+                                       send_email(candidate.name,"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, candidate.email, False)
+                               candidate.reminderscount += 1
+                               if candidate.reminderscount == jobConfig.remindersCount:
+                                       promStats.candidates_count.labels(company_name="1", job_profile=candidate.questions, candidate_state='Discarded').inc()
+                                       promStats.candidates_state_transition.labels("1", candidate.questions, "Subscribed").observe(\
+                                                                                       ((int(time.time()) - candidate.statusTimestamp) / 3600))
+                                       requests.post("http://127.0.0.1:80/pegStats", \
+                                                               data=\
+                                                               {
+                                                                       'company_name': '1', \
+                                                                       'job_profile': candidate.questions, \
+                                                                       'candidate_state': 'Discarded', \
+                                                                       'stat_value': 1, \
+                                                                       'candidate_previous_state': 'Subscribed', \
+                                                                       'candidate_previous_state_time': currentTimestamp \
+                                                               })
+                                       candidate.delete()
+                               else:
+                                       candidate.nextReminderTimestamp = currentTimestamp + 86400
+                                       candidate.save()
+               time.sleep(10)
