@@ -1,6 +1,7 @@
 from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
 
+#class Person(models.Model):
 class Person(ExportModelOperationsMixin('candidate'), models.Model):
     checkbox = models.CharField(max_length=1, default="")
     name = models.CharField(max_length=30)
@@ -46,8 +47,10 @@ class Person(ExportModelOperationsMixin('candidate'), models.Model):
     calendar = models.CharField(max_length=30, default = "")
     statusTimestamp = models.IntegerField(default=0)
     onlineTestTimePending = models.IntegerField(default=3600)
+    currentOnlineQuestion = models.IntegerField(default=1)
     
 
+#class JobProfile(models.Model):
 class JobProfile(ExportModelOperationsMixin('jobprofile'), models.Model):
     jobId = models.CharField(max_length=100, primary_key=True)
     designation = models.CharField(max_length=30)
@@ -109,3 +112,21 @@ class OnlineTestKeys(models.Model):
     test3 = models.TextField()
     test4 = models.TextField()
     test5 = models.TextField()
+
+# Status is in JSON format as below:
+# [
+#    {
+#       "jobId": "<ID>",
+#       "state": "<Candidate State>",
+#       "stateTimestamp": "<Timestamp>"
+#       "reason": "<Reason>"
+#    },
+#    .....
+# ]
+#class CandidateHistory(models.Model):
+class CandidateHistory(ExportModelOperationsMixin('CandidateHistory'), models.Model):
+    mobile = models.CharField(max_length=30, primary_key=True)
+    name = models.CharField(max_length=30)
+    email = models.CharField(max_length=30)
+    entryTime = models.DateField(auto_now_add=True)
+    status = models.CharField(max_length=8096, default="[]")

@@ -3,7 +3,7 @@
 # See: http://github.com/seb-m/pyinotify/wiki/Tutorial
 #
 import os, shutil, time, sys
-import requests
+import requests, json
 
 from zipfile import ZipFile
 from datetime import datetime
@@ -29,34 +29,79 @@ from django.template import Context
 from django.template.loader import render_to_string, get_template
 from django.template import Context
 from django.core.exceptions import ObjectDoesNotExist
+from django.core import serializers
+from pwd import getpwnam  
+import grp
+import spacy
+import getpass
+import en_core_web_sm
+import os
+import multiprocessing
+import subprocess
+
+def updateCandidateStatus(mobileNo, jobId, state, reason=""):
+    candidateEntry = models.CandidateHistory.objects.get(mobile=mobileNo)
+    print("Hello", candidateEntry.status)
+    candidateStatus = json.loads(candidateEntry.status)
+    jobIdExists = False
+    for jobEntry in candidateStatus:
+        if jobId in jobEntry:
+            jobIdExists = True
+            jobEntry["state"] = state
+            jobEntry["stateTimestamp"] = int(time.time())
+            jobEntry["reason"] = reason
+    if not jobIdExists:
+        newJobEntry = {}
+        newJobEntry["jobId"] = jobId
+        newJobEntry["state"] = state
+        newJobEntry["stateTimestamp"] = int(time.time())
+        newJobEntry["reason"] = reason
+        candidateStatus.append(newJobEntry)
+    candidateEntry.status = json.dumps(candidateStatus)
+    print(candidateEntry.status)
+    candidateEntry.save()
 
 def AddPerson(rparser, jobId):
-	print("latest",rparser['name'],rparser['email'],rparser['mobile_number'], rparser['skills'], jobId)
-	jobProfile = models.JobProfile.objects.get(jobId__exact=jobId)
-	p = models.Person(name=rparser['name'],  \
+        print("latest",rparser['name'],rparser['email'],rparser['mobile_number'], rparser['skills'], jobId)
+        if models.CandidateHistory.objects.filter(mobile=rparser['mobile_number']).exists():
+            candidateEntry = models.CandidateHistory.objects.get(mobile=rparser['mobile_number'])
+            print("Lovely", rparser['mobile_number'], " ", candidateEntry.status)
+            candidateStatus = json.loads(candidateEntry.status)
+            if jobId in candidateStatus and (candidateStatus[jobId]['stateTimestamp'] - int(time.time()) < (6*30*24*60*60)):
+                #return None TODO
+                print("Candidate already exists")
+        else:
+            candidateEntry = models.CandidateHistory(name=rparser['name'],  \
+                                                    mobile=rparser['mobile_number'], \
+                                                    email=rparser['email'])
+            candidateEntry.save()
+        print("Ganga Rama here")
+        jobProfile = models.JobProfile.objects.get(jobId__exact=jobId)
+        p = models.Person(name=rparser['name'],  \
                       mobile=rparser['mobile_number'], \
                       stringId = get_random_string(length=30), \
-					  questions = jobProfile.jobId,email=rparser['email'], \
-					  skills=set(jobProfile.skills).intersection(set(rparser['skills'])), \
-					  status="pending", \
+        				  questions = jobProfile.jobId,email=rparser['email'], \
+        				  skills=set(jobProfile.skills).intersection(set(rparser['skills'])), \
+        				  status="pending", \
                       score=0, \
                       education=rparser['education'], \
                       experience=rparser['experience'], \
                       reminderscount=0)
-	questions_link = settings.SLICKHIRE_HOST_URL + "/questions?id=" + p.stringId
-	print(questions_link)
-	optout_link = settings.SLICKHIRE_HOST_URL + '/opt_out?id=' + p.stringId
-	jobConfig = models.JobSettings.objects.get(companyId="1")
-	if jobConfig:
-		if jobConfig.smsEnabled:
-			smsStatus = ''
-			sendSMS(p.mobile, "xyz", questions_link)
-			print(smsStatus)
-		if jobConfig.voiceEnabled:
-			makeVoiceCall(p.mobile, "kempa")
-		if jobConfig.emailEnabled:
-			send_email(rparser['name'], \
-					   jobProfile.designation, \
+        questions_link = settings.SLICKHIRE_HOST_URL + "/questions?id=" + p.stringId
+        print(questions_link)
+        optout_link = settings.SLICKHIRE_HOST_URL + '/opt_out?id=' + p.stringId
+        jobConfig = models.JobSettings.objects.get(companyId="1")
+        # TODO: Fix it once company object is created
+        if True or jobConfig:
+        	if True or jobConfig.smsEnabled:
+        		smsStatus = ''
+        		sendSMS(p.mobile, "xyz", questions_link)
+        		print(smsStatus)
+        	if True or jobConfig.voiceEnabled:
+        		makeVoiceCall(p.mobile, "kempa")
+        	if True or jobConfig.emailEnabled:
+        		send_email(rparser['name'], \
+        				   jobProfile.designation, \
                        "Moto Rockr", \
                        "Dharwad", \
                        "www.SlickHire.in", \
@@ -65,33 +110,49 @@ def AddPerson(rparser, jobId):
                        optout_link, \
                        p.email,\
                        online=False)
-	p.status = "Subscribed"
-	p.statusTimestamp = int(time.time())
-	p.save()
+        p.status = "Subscribed"
+        p.statusTimestamp = int(time.time())
+        p.save()
+        updateCandidateStatus(rparser['mobile_number'], jobId, "Subscribed")
+
+def makeDict(parser):
+    details = {}
+    for x in parser.split('\n'):
+        if x is not "":
+            data = x.split(':')
+            if data is not "":
+                details[data[0].replace(" ", "")] = data[1].replace(" ", "")
+    return(details)
+
 
 def Extract_Files(newFile):
-	print('Extract single file from ZIP', newFile)
-	jobId = newFile.split('/', -1)[-1].split('#', 1)[0]
-	numSubscribers = 0
-	with ZipFile(newFile, 'r') as zipObj:
-		listOfFileNames = zipObj.namelist()
-		for fileName in listOfFileNames:
-			zipObj.extract(fileName)
-			print('Processing the new file',fileName)
-			parser = resume_parser.ResumeParser(fileName)
-			print("Resume Parsing Done")
-			AddPerson(parser.get_extracted_data(), jobId)
-			numSubscribers += 1
-	requests.post("http://127.0.0.1:80/pegStats", \
-					data=\
-					{
-						'csrfmiddlewaretoken': 'HelloWorld', \
-						'company_name': '1', \
-						'job_profile': jobId, \
-						'candidate_state': 'Subscribed', \
-						'stat_value': numSubscribers, \
-						'candidate_previous_state': '' \
-					})
+    print('Extract single file from ZIP', newFile)
+    jobId = newFile.split('/', -1)[-1].split('#', 1)[0]
+    numSubscribers = 0
+    os.chdir(os.path.join(settings.BASE_DIR, 'tmp/'))
+    with ZipFile(newFile, 'r') as zipObj:
+        listOfFileNames = zipObj.namelist()
+        for fileName in listOfFileNames:
+            print(fileName)
+            zipObj.extract(fileName)
+            #Enable the resume_parser.ResumeParser once nlp.load is fixed
+            print('Processing the new file',fileName)
+            command = "python3 /root/backend/SlickHire/tutorial/rp.py " + fileName
+            parser = subprocess.check_output(command, shell=True,universal_newlines=True)
+            AddPerson(makeDict(parser), jobId)
+            #parser = resume_parser.ResumeParser(fileName)
+            #AddPerson(parser.get_extracted_data(), jobId)
+            numSubscribers += 1
+    requests.post(settings.SLICKHIRE_HOST_URL + "/pegStats", \
+        data=\
+        {
+            'csrfmiddlewaretoken': 'HelloWorld', \
+            'company_name': '1', \
+            'job_profile': jobId, \
+            'candidate_state': 'Subscribed', \
+            'stat_value': numSubscribers, \
+            'candidate_previous_state': '' \
+        }, verify=False)
 
 
 def OnlineTestEval():
@@ -168,12 +229,12 @@ def OnlineTestEval():
 
 def ResumeHandler():
 	while 1:
-		print("Checking for any uploaded files")
 		uploadedFiles = os.listdir(os.path.join(settings.BASE_DIR, 'tutorial/static/upload/'))
 		for uploadedFile in uploadedFiles:
 			print(uploadedFile)
 			filename = os.path.join(settings.BASE_DIR, 'tutorial/static/upload/', uploadedFile)
 			if os.path.splitext(uploadedFile)[-1].lower() == ".zip":
+				#os.chown(filename, getpwnam('www-data').pw_uid, grp.getgrnam('www-data')[2])
 				Extract_Files(filename)
 			shutil.move(filename, os.path.join(settings.BASE_DIR, 'tutorial/static/processed/'))
 		time.sleep(5)
@@ -188,49 +249,47 @@ def isReminderAllowedAtThisTime():
 
 
 def StartQuestionaireReminder():
-       while 1:
-               print("Reminder Started at ", time.time())
+    while 1:
+        print("Reminder Started at ", time.time())
                
-               if not isReminderAllowedAtThisTime():
-                       return
-               
-               jobConfig = models.JobSettings.objects.get(companyId="1")
-               if not jobConfig:
-                       return
-               
-               if jobConfig.remindersCount == 0:
-                       return
-               
-               currentTimestamp = int(time.time())
-               
-               candidates = models.Person.objects.all()
-               for candidate in candidates:
-                       if candidate.status != 'Interested' and currentTimestamp >= candidate.nextReminderTimestamp:
-                               candQuestionsUrl = settings.SLICKHIRE_HOST_URL + "/questions?id={}".format(candidate.stringId)
-                               optout_link = settings.SLICKHIRE_HOST_URL + '/opt_out?id=' + candidate.stringId
-                               if jobConfig.smsEnabled:
-                                       sendSMS(candidate.mobile, "xyz", id)
-                               if jobConfig.voiceEnabled:
-                                       makeVoiceCall(candidate.mobile, "kempa")
-                               if jobConfig.emailEnabled:
-                                       send_email(candidate.name,"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, candidate.email, False)
-                               candidate.reminderscount += 1
-                               if candidate.reminderscount == jobConfig.remindersCount:
-                                       promStats.candidates_count.labels(company_name="1", job_profile=candidate.questions, candidate_state='Discarded').inc()
-                                       promStats.candidates_state_transition.labels("1", candidate.questions, "Subscribed").observe(\
-                                                                                       ((int(time.time()) - candidate.statusTimestamp) / 3600))
-                                       requests.post("http://127.0.0.1:80/pegStats", \
-                                                               data=\
-                                                               {
-                                                                       'company_name': '1', \
-                                                                       'job_profile': candidate.questions, \
-                                                                       'candidate_state': 'Discarded', \
-                                                                       'stat_value': 1, \
-                                                                       'candidate_previous_state': 'Subscribed', \
-                                                                       'candidate_previous_state_time': currentTimestamp \
-                                                               })
-                                       candidate.delete()
-                               else:
-                                       candidate.nextReminderTimestamp = currentTimestamp + 86400
-                                       candidate.save()
-               time.sleep(10)
+        if not isReminderAllowedAtThisTime():
+            return
+
+        jobConfig = models.JobSettings.objects.get(companyId="1")
+        if not jobConfig:
+            return
+
+        if jobConfig.remindersCount == 0:
+            return
+
+        currentTimestamp = int(time.time())
+
+        candidates = models.Person.objects.all()
+        for candidate in candidates:
+            if candidate.status != 'Interested' and currentTimestamp >= candidate.nextReminderTimestamp:
+                candQuestionsUrl = settings.SLICKHIRE_HOST_URL + "/questions?id={}".format(candidate.stringId)
+                optout_link = settings.SLICKHIRE_HOST_URL + '/opt_out?id=' + candidate.stringId
+                if jobConfig.smsEnabled:
+                    sendSMS(candidate.mobile, "xyz", id)
+                if jobConfig.voiceEnabled:
+                    makeVoiceCall(candidate.mobile, "kempa")
+                if jobConfig.emailEnabled:
+                    send_email(candidate.name,"Devloper","Moto Rockr","Dharwad","www.SlickHire.in","www.SlickHire.in/jobs",id, optout_link, candidate.email, False)
+                candidate.reminderscount += 1
+                if candidate.reminderscount == jobConfig.remindersCount:
+                    requests.post(settings.SLICKHIRE_HOST_URL + "/pegStats", \
+                        data=\
+                        {
+                                'company_name': '1', \
+                                'job_profile': candidate.questions, \
+                                'candidate_state': 'Discarded', \
+                                'stat_value': 1, \
+                                'candidate_previous_state': 'Subscribed', \
+                                'candidate_previous_state_time': currentTimestamp \
+                        }, verify=False)
+                updateCandidateStatus(candidate.mobile, candidate.questions, "Discarded")
+                candidate.delete()
+            else:
+                candidate.nextReminderTimestamp = currentTimestamp + 86400
+                candidate.save()
+        time.sleep(10)

@@ -14,6 +14,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import time
 import json
+import os
 
 import smtplib
 from email import encoders
@@ -183,6 +184,7 @@ def sendInterviewLink(request):
 
 @csrf_exempt
 def sendLink(request):
+    print("Send LINK URL")
     candidates = request.POST.getlist('candidates[]')
     candidatesStr = ' '.join(candidates);
     row = models.InternalLink(linkId=get_random_string(length=30), candidates=candidatesStr)
@@ -191,6 +193,7 @@ def sendLink(request):
     data = models.Person.objects.only('questions').get(mobile__exact=candidates[0])
     emails = models.JobProfile.objects.only('emails').get(jobId__exact=data.questions)
     url = settings.SLICKHIRE_HOST_URL + "/getLink?linkId=" + row.linkId
+    print("Send LINK URL:", url)
     res = send_mail("Candidate Shortlisted", url, settings.EMAIL_HOST_USER, emails.emails.split(","))
     print(candidatesStr)
     return HttpResponse("success")
@@ -378,16 +381,18 @@ def questions(request):
         else:
             print("Do Nothing")
 
+        print("Ganga here prog test",row.onlineProgExamCategory)
+        # TODO: Fix it once company object is created
         if row.onlineProgExamCategory != "none":
             onlinelink = settings.SLICKHIRE_HOST_URL + "/online?id=" + request.POST['strId']
             optoutlink = settings.SLICKHIRE_HOST_URL + '/opt_out?id=' + request.POST['strId']
             jobConfig = models.JobSettings.objects.get(companyId="1")
-            if jobConfig:
-                if jobConfig.smsEnabled:
+            if True or jobConfig:
+                if True or jobConfig.smsEnabled:
                     smsStatus = ''
                     sendSMS(data.mobile, "xyz", onlinelink)
                     print(smsStatus)
-                if jobConfig.emailEnabled:
+                if True or jobConfig.emailEnabled:
                     send_email(data.name, \
                                row.designation, \
                                "Moto Rockr", \
@@ -431,6 +436,7 @@ def questions(request):
         data.question4 = row.question4
         data.question5 = row.question5
         data.nextReminderTimestamp = int(time.time()) + 86400
+        data.onlineTestTimePending = 86400
         data.save()
         selectLang = "false"
         if row.onlineProgExamCategory != "none" and row.onlinePrefProgLang == "any":
@@ -443,6 +449,7 @@ def opt_out(request):
         print('Receieved POST opt-out request for: ', request.POST["strId"])
         candidate = models.Person.objects.only('questions').get(stringId__exact=request.POST['strId'])
         if candidate:
+            updateCandidateStatus(candidate.mobile, candidate.questions, "OptedOut")
             promStats.candidates_count.labels("1", candidate.questions, "OptedOut").inc()
             subscribedStatusTime = (int(time.time()) - candidate.statusTimestamp) / 3600
             print("Timestamp: ", subscribedStatusTime)
@@ -485,6 +492,8 @@ def online(request):
             data.answer1 = request.POST.get("answer1")
             data.onlineAnswer1Time += int(time.time()) - data.onlineStartTimeStamp 
             data.onlineStartTimeStamp = int(time.time())
+            data.currentOnlineQuestion = 2
+            print("Ganga 1 submit",data.currentOnlineQuestion)
             data.save()
             q2 = models.OnlineTestKeys.objects.get(qid=data.question2)
             res = zip([['2',q2.type,q2.question,q2.choice1,q2.choice2,q2.choice3,q2.choice4,data.answer2]])
@@ -493,6 +502,7 @@ def online(request):
             data.answer2 = request.POST.get("answer2")
             data.onlineAnswer2Time += int(time.time()) - data.onlineStartTimeStamp
             data.onlineStartTimeStamp = int(time.time())
+            data.currentOnlineQuestion = 3
             data.save()
             q3 = models.OnlineTestKeys.objects.get(qid=data.question3)
             print("Ganga",data.answer3, q3.question)
@@ -503,6 +513,7 @@ def online(request):
             data.answer3 = request.POST.get('answer3')
             data.onlineAnswer3Time += int(time.time()) - data.onlineStartTimeStamp
             data.onlineStartTimeStamp = int(time.time())
+            data.currentOnlineQuestion = 4
             data.save()
             print("Ganga", data.answer3)
             q4 = models.OnlineTestKeys.objects.get(qid=data.question4)
@@ -512,6 +523,7 @@ def online(request):
             data.answer4 = request.POST.get('answer4')
             data.onlineAnswer4Time += int(time.time()) - data.onlineStartTimeStamp
             data.onlineStartTimeStamp = int(time.time())
+            data.currentOnlineQuestion = 5
             data.save()
             q5 = models.OnlineTestKeys.objects.get(qid=data.question5)
             res = zip([['5',q5.type,q5.question,q5.choice1,q5.choice2,q5.choice3,q5.choice4,data.answer5]])
@@ -523,6 +535,7 @@ def online(request):
             data.onlinetesteval = 0
             data.onlineAnswer5Time += int(time.time()) - data.onlineStartTimeStamp
             data.onlineStartTimeStamp = int(time.time())
+            data.currentOnlineQuestion = 5
             data.save()
             return HttpResponse("Answers submitted successfuly" + data.answer1 + data.answer2 + data.answer3 + data.answer4 + data.answer5)
         else:
@@ -540,6 +553,8 @@ def online(request):
             q1 = models.OnlineTestKeys.objects.get(qid=data.question1)
             res = zip([['1', q1.type,q1.question,q1.choice1,q1.choice2,q1.choice3,q1.choice4,data.answer1]])
             data.onlineStartTimeStamp = int(time.time())
+            data.currentOnlineQuestion = 1
+            print(" Ganga first question")
             data.save()
             return render(request,"onlinetest.html", {'slickhire_host_url': settings.SLICKHIRE_HOST_URL, 'qs': res, 'stringId': id, 'onlineProgLangCM' :data.onlineProgLangCM, 'onlineProgLangIDE':data.onlineProgLangIDE})
         except models.Person.DoesNotExist:
@@ -616,6 +631,10 @@ def printquestions(request):
         data = list(models.OnlineTestKeys.objects.values_list())    
         return JsonResponse({"draw": 1, "recordsTotal": 1, "recordsFiltered": 1, "data": data}, safe=False)
 
+def delete_everything(request):
+        models.Person.objects.all().delete()
+        return  JsonResponse({"draw": 1, "recordsTotal": 1}, safe=False)
+
 def printPersons(request):
     data = list(models.Person.objects.values_list())
     return  JsonResponse({"draw": 1, "recordsTotal": 1, "recordsFiltered": 1, "data": data}, safe=False)
@@ -623,6 +642,30 @@ def printPersons(request):
 def printjobs(request):
     data = list(models.JobProfile.objects.values_list())
     return  JsonResponse({"draw": 1, "recordsTotal": 1, "recordsFiltered": 1, "data": data}, safe=False)
+
+def handle_uploaded_file_new(f, personData):
+    print("Fetch Ganga",personData.currentOnlineQuestion)
+    fileName = '/root/backend/OnlineTest/' + personData.questions + '/' + personData.name + '_' + personData.mobile + '/' + str(personData.currentOnlineQuestion)+'_'+str(int(round(time.time() * 1000)))+'.webm' 
+    #fileName = '/root/backend/OnlineTest/'+personData.name+'.webm' 
+    print("Ganga copying to ", fileName)
+    os.makedirs(os.path.dirname(fileName), exist_ok=True)
+    destination = open(fileName, 'wb+')
+    for chunk in f.chunks(): 
+        destination.write(chunk)
+    destination.close()
+    print("Stored",fileName)
+
+
+@csrf_exempt
+def captureArray(request):
+     #file_x = request.FILES['webmasterfile']
+     #file_x.save(os.path.join('/tmp/', file_x.filename))
+     print("Received File")
+     filepath = request.FILES['webmasterfile']
+     data = models.Person.objects.only('questions').get(stringId__exact=request.POST['id'])
+     handle_uploaded_file_new(filepath, data)
+     return HttpResponse(0)
+
 # Create your views here.
 
 @csrf_exempt
@@ -640,3 +683,7 @@ def pegStats(request):
 									  request.POST['candidate_previous_state']) \
 									  .observe(((int(time.time()) - int(request.POST['candidate_previous_state_time'])) / 3600))
 	return HttpResponse("Success")
+
+def candidateStatus(request):
+    data = list(models.CandidateHistory.objects.filter(mobile=request.GET['mobile']))
+    return JsonResponse({"data": data}, safe=False)

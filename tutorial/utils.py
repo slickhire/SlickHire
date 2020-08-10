@@ -8,6 +8,7 @@ import spacy
 import pandas as pd
 import docx2txt
 from . import constants as cs
+#import constants as cs
 from spacy.matcher import Matcher
 from pdfminer.converter import TextConverter
 from pdfminer.pdfinterp import PDFPageInterpreter
@@ -52,7 +53,6 @@ def extract_text_from_doc(doc_path):
     :param doc_path: path to .doc or .docx file to be extracted
     :return: string of extracted text
     '''
-    print(doc_path,"kempahere in doc")
     #temp = docxtxt.process(doc_path)
     #temp = doc2txt.process(doc_path)
     temp = textract.process(doc_path).decode('utf-8')
@@ -128,7 +128,6 @@ def extract_email(text):
     emailIds = re.findall("((\w+\.?)+@\w+\.\w+)", text)
     if emailIds:
         primaryEmailId = emailIds[0][0]
-        print(primaryEmailId)
         return primaryEmailId
 
     '''
@@ -157,7 +156,6 @@ def extract_name(nlp_text, matcher):
     #print("Matches name",matches)
     for match_id, start, end in matches:
         span = nlp_text[start:end]
-        print("Matches name span",span.text)
         return span.text
 
 def extract_mobile_number(text):
@@ -195,7 +193,6 @@ def extract_skills(nlp_text, noun_chunks):
     :return: list of skills extracted
     '''
     tokens = [token.text for token in nlp_text if not token.is_stop]
-    print(os.path.join(os.path.dirname(__file__)))
     data = pd.read_csv(os.path.join(os.path.dirname(__file__), 'skills.csv')) 
     skills = list(data.columns.values)
     skillset = []

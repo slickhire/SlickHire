@@ -1,15 +1,27 @@
 # Author: Omkar Pathak
 
 import os
+import sys
 from . import utils
+#import utils
 import spacy
 import pprint
 from spacy.matcher import Matcher
 import multiprocessing as mp
+import en_core_web_sm
 
 class ResumeParser(object):
     def __init__(self, resume):
+        print (sys.version)
+        print(spacy.__version__)
         nlp = spacy.load('en_core_web_sm')
+        #nlp = spacy.load('/root/en_core_web_sm-2.3.1/en_core_web_sm')
+        #nlp = en_core_web_sm.load()
+        #doc = nlp("He went to play basketball")
+        #for token in doc:
+        #    print(token.text, "-->", token.pos_)
+        #lp = spacy.load('/root/en_core_web_sm-2.3.1/en_core_web_sm')
+        #nlp = spacy.load('en_core_web_sm')
         self.__matcher = Matcher(nlp.vocab)
         self.__details = {
             'name'              : None,

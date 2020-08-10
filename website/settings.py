@@ -27,14 +27,14 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-SLICKHIRE_HOST_URL = 'http://147.139.32.102'
+SLICKHIRE_HOST_URL = 'https://147.139.32.102'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
 #MAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST = '74.125.24.108'
-EMAIL_HOST_USER = 'dummyfortest.ganga@gmail.com'
-EMAIL_HOST_PASSWORD = 'SlickMail@9'
+EMAIL_HOST_USER = 'testslickhire@gmail.com'
+EMAIL_HOST_PASSWORD = 'slickhire@9'
 EMAIL_PORT = 587
 
 
@@ -178,6 +178,7 @@ CORS_ORIGIN_WHITELIST = [
     SLICKHIRE_HOST_URL + ':3000',
     SLICKHIRE_HOST_URL + ':8000',
     SLICKHIRE_HOST_URL + ':8080',
+    SLICKHIRE_HOST_URL + ':443',
 ]
 
 CSRF_COOKIE_NAME = "csrftoken"

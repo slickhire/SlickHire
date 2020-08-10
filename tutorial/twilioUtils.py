@@ -51,7 +51,7 @@ def send_email(candidate_name,
         else:
             templateName = "email.html"
         send_mail('Job Alert SlickHire',
-				  get_template(templateName).render(
+		  get_template(templateName).render(
                   {
                     'candidate_name': candidate_name,
                     'job_title': job_title,
@@ -62,8 +62,8 @@ def send_email(candidate_name,
                     'input_link': input_link,
                     'optout_link': optout_link
                   }),
-    			  settings.EMAIL_HOST_USER,
-    			  [to_mail],
-    			  fail_silently = False)
+    		  settings.EMAIL_HOST_USER,
+    		  [to_mail],
+    		  fail_silently = False)
     except:
-       print("Failure in sending an email")
+        print("Failure in sending an email: ", sys.exc_info()[0])

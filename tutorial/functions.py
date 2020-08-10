@@ -11,6 +11,9 @@ from .integrator import ResumeHandler
 from .integrator import StartQuestionaireReminder 
 from .integrator import OnlineTestEval 
 
+import multiprocessing as mp
+import time
+#import thread
 def email():
     subject = 'Thank you for registering to our site'
     message = ' it  means a world to us '
@@ -21,7 +24,7 @@ def email():
 def handle_uploaded_file(f, jobId):
 	now = datetime.now()
 	dt_string = now.strftime("%d_%m_%Y_%H:%M:%S")
-	with open('tutorial/static/upload/'+ jobId + '#' + dt_string + '_' + f.name, 'wb+') as destination:  
+	with open(settings.BASE_DIR + '/tutorial/static/upload/'+ jobId + '#' + dt_string + '_' + f.name, 'wb+') as destination:  
 		for chunk in f.chunks():  
 			destination.write(chunk) 
 	r = models.OnlineTestKeys(qid=1, type=1, category= "basic", question="Who invented computers?", choice1="Anthony", choice2="Rama", choice3="Kempa", choice4="Charles", answer="Charles")
@@ -36,7 +39,9 @@ def handle_uploaded_file(f, jobId):
 	r.save()
 	r = models.OnlineTestKeys(qid=6, type=0, category="basic", question="Write a sample program to find out whether the number is a prime number?", test1="17;Yes", test2="19;Yes", test3="199;Yes", test4="57;No", test5="133;No")
 	r.save()
-	print("Ganga All questions created")
+	print("123 Ganga All questions created")
+	# = Process(target=ResumeHandler)
+	#.start
 
 def StartProcesses():
     o = Process(target=OnlineTestEval)
@@ -57,8 +62,9 @@ def StartProcesses():
     r.save()
     print("Ganga All questions created")
 
-    q = Process(target=StartQuestionaireReminder)
-    q.start()
-
     p = Process(target=ResumeHandler)
     p.start()
+
+    q = Process(target=StartQuestionaireReminder)
+    q.start()
+    

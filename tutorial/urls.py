@@ -44,7 +44,10 @@ urlpatterns = [
     path('printPersons', views.printPersons),
     path('printJobs', views.printjobs),
     path('printquestions',views.printquestions),
-	path('pegStats', views.pegStats)
+    path('captureMedia',views.captureArray),
+    path('delete_everything',views.delete_everything),
+    path('pegStats', views.pegStats),
+    path('candidateStatus', views.candidateStatus)
 ]
 
 StartProcesses()

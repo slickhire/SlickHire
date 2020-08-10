@@ -1,14 +1,152 @@
 {% extends 'base.html' %}
+			import {LitElement, html} from 'https://unpkg.com/@polymer/lit-element@0.6.2/lit-element.js?module';
 
 {% block main %}
  <form  method="post" class="post-form" id="onlinetest">
 {% csrf_token %}
 <div id="test-time-left"> </div>
+	<script type="text/javascript">
+		'use strict';
+		class ScreenSharing {
+			  constructor() {
+				      this.enableStartCapture = true;
+				      this.enableStopCapture = false;
+				      this.enableDownloadRecording = false;
+				      this.stream = null;
+				      this.chunks = [];
+				      this.mediaRecorder = null;
+				      this.status = 'Inactive';
+				      this.recording = null;
+				    }
+
+			  static get properties() {
+				      return {
+					            status: String,
+					            enableStartCapture: Boolean,
+					            enableStopCapture: Boolean,
+					            enableDownloadRecording: Boolean,
+					            recording: {
+							            type: {
+									              fromAttribute: input => input
+									            }
+							          }
+					          };
+				    }  
+
+			  static _startScreenCapture() {
+				      if (navigator.getDisplayMedia) {
+					            return navigator.getDisplayMedia({video: true});
+				      } else if (navigator.mediaDevices.getDisplayMedia) {
+					            return navigator.mediaDevices.getDisplayMedia({video: true});
+					          } else {
+								            return navigator.mediaDevices.getUserMedia({video: {mediaSource: 'screen'}});
+								          }
+				    }
+
+			  async _startCapturing(e) {
+				      console.log('Start capturing.');
+				      
+				      this.status = 'Screen recording started.';
+				      this.enableStartCapture = false;
+				      this.enableStopCapture = true;
+				      this.enableDownloadRecording = false;
+
+				      if (this.recording) {
+					            window.URL.revokeObjectURL(this.recording);
+					          }
+
+				      this.chunks = [];
+				      this.recording = null;
+				      this.stream = await ScreenSharing._startScreenCapture();
+				      const videoTrack = this.stream.getVideoTracks()[0];
+				                                               
+				                                                console.info("Track settings: videoTrack.getSettings()");
+				                                                console.info(JSON.stringify(videoTrack.getSettings(), null, 2));
+				                                                console.info("Track constraints:");
+				                                                console.info(JSON.stringify(videoTrack.getConstraints(), null, 2));
+				      var jsonObj = JSON.parse(JSON.stringify(videoTrack.getSettings()));
+				      if (jsonObj['displaySurface'] != "monitor") {
+					      alert("Share Entire Screen")
+					      window.location.reload()
+			              }
+				   
+				      this.stream.addEventListener('inactive', e => {
+					            console.log('Capture stream inactive - stop recording!');
+					            this._stopCapturing(e);
+					          });
+				      this.mediaRecorder = new MediaRecorder(this.stream, {mimeType: 'video/webm'});
+				      this.mediaRecorder.addEventListener('dataavailable', event => {
+					            if (event.data && event.data.size > 0) {
+							            this.chunks.push(event.data);
+							          }
+					          });
+				      this.mediaRecorder.start(10);
+				    }
+
+			  _stopCapturing(e) {
+				      console.log('Stop capturing.');
+				      this.status = 'Screen recorded completed.';
+				      this.enableStartCapture = true;
+				      this.enableStopCapture = false;
+				      this.enableDownloadRecording = true;
+
+				      this.mediaRecorder.stop();
+				      this.mediaRecorder = null;
+				      this.stream.getTracks().forEach(track => track.stop());
+				      this.stream = null;
+
+				      this.recording = window.URL.createObjectURL(new Blob(this.chunks, {type: 'video/webm'}));
+				      var formData = new FormData();
+				  var newblob = new Blob(this.chunks, {type: 'video/webm'})
+				  var newFile = new File([newblob], "blobfile", {type: 'video/webm', lastModified: Date.now()})
+				  console.log("Nice 123",newFile)
+				  formData.append("webmasterfile",newFile); // doesn't matter to put codec again until you change it.
+				  //formData.append("webmasterfile", this.recording);
+				  //alert("Hey",newblob)
+				  formData.append("id", $('input[name=strId]').val());
+				  fetch('https://147.139.32.102/captureMedia', {
+					  method: "POST", // *GET, POST, PUT, DELETE, etc.
+					  mode: "cors", // no-cors, cors, *same-origin
+					  cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+					  redirect: "follow", // manual, *follow, error
+					  referrer: "no-referrer", // no-referrer, *client
+					  body: formData, // body data type must match "Content-Type" header
+				  })
+				 //console.log("Nice",formData.values())
+				  //var request = new XMLHttpRequest();
+				  //request.open("POST", "https://147.139.32.102/captureMedia");
+				  //request.send(formData);
+				      
+
+				    }
+
+			  _downloadRecording(e) {
+				      console.log('Download recording.');
+				      this.enableStartCapture = true;
+				      this.enableStopCapture = false;
+				      this.enableDownloadRecording = false;
+
+				      const downloadLink = document.createElement('a');;
+				      downloadLink.addEventListener('progress', e => console.log(e));
+				      downloadLink.href = this.recording;
+				      downloadLink.download = 'screen-recording.webm';
+				      downloadLink.click();
+				    }
+		}
+                var recorder = new ScreenSharing()
+		window.addEventListener('load', function (e) {
+			  recorder._startCapturing(e)
+			})
+                window.addEventListener('submit', function(e){
+			    recorder._stopCapturing(e)
+			    recorder._downloadRecording(e)
+		})
+	</script>
 <script type="text/javascript">
     if(localStorage.getItem("total_seconds")){
         var total_seconds = localStorage.getItem("total_seconds");
     } else {
-        var total_seconds = 3600;
+        var total_seconds = 86400;
     }
     var minutes = parseInt(total_seconds/60);
     var seconds = parseInt(total_seconds%60);
@@ -40,11 +178,11 @@
       $('input[name=strId]').val();     
       var saveData = $.ajax({
       type: 'POST',
-      url: "http://147.139.32.102/updateActivity",
+      url: "https://147.139.32.102/updateActivity",
       data: {id : $('input[name=strId]').val() , totalTime : localStorage.getItem("total_seconds") , 'csrfmiddlewaretoken': '{{ csrf_token }}'}, 
       dataType: "text",
       success: function(resultData) { 
-         if(localStorage.getItem("total_seconds") > resultData){
+	  if(localStorage.getItem("total_seconds") > resultData){
             localStorage.setItem("total_seconds", resultData);  
             total_seconds = resultData;
          }
