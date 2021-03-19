@@ -17,7 +17,7 @@ django-compat==1.0.15
 django-cors-headers==3.2.1
 django-prometheus==2.0.0
 django-rest-auth==0.9.5
-djangorestframework==3.11.0
+djangorestframework==3.11.2
 docx2txt==0.8
 EbookLib==0.17.1
 en-core-web-sm==2.2.5
