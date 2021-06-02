@@ -64,7 +64,7 @@ thinc==7.4.0
 tqdm==4.45.0
 twilio==6.38.1
 tzlocal==1.5.1
-urllib3==1.25.9
+urllib3==1.26.5
 wasabi==0.6.0
 watchdog==0.10.2
 whitenoise==5.0.1
