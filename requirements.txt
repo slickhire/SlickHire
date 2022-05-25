@@ -43,7 +43,7 @@ preshed==3.0.2
 prometheus-client==0.8.0
 pycryptodome==3.9.7
 pyinotify==0.9.6
-PyJWT==1.7.1
+PyJWT==2.4.0
 python-dateutil==2.8.1
 python-pptx==0.6.18
 python3-openid==3.1.0
