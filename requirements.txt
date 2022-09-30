@@ -25,7 +25,7 @@ extract-msg==0.23.1
 idna==2.9
 IMAPClient==2.1.0
 importlib-metadata==1.6.0
-joblib==0.14.1
+joblib==1.2.0
 lxml==4.5.0
 murmurhash==1.0.2
 nltk==3.5
